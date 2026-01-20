@@ -1,0 +1,105 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: rabbitmq
+  namespace: rabbitmq
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/component: messaging
+    environment: prod
+spec:
+  replicas: 3
+  
+  image: rabbitmq:4.1.3-management
+  
+  resources:
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+  
+  persistence:
+    storageClassName: longhorn
+    storage: 20Gi
+  
+  rabbitmq:
+    additionalConfig: |
+      # Production environment configuration
+      # Note: cluster_formation.* and cluster_partition_handling are set by operator defaults
+      
+      # Memory and disk limits (overriding defaults for prod)
+      vm_memory_high_watermark.relative = 0.6
+      disk_free_limit.absolute = 5GB
+      
+      # Consumer timeout (15 minutes)
+      consumer_timeout = 900000
+      
+      # Prometheus metrics (detailed)
+      prometheus.return_per_object_metrics = true
+      
+      # High availability (overriding operator default)
+      queue_master_locator = min-masters
+      
+      # Clustering (prod tuning)
+      cluster_keepalive_interval = 10000
+    
+    additionalPlugins:
+      # Note: rabbitmq_management, rabbitmq_prometheus, rabbitmq_peer_discovery_k8s are essential plugins (always enabled)
+      - rabbitmq_shovel
+      - rabbitmq_shovel_management
+      - rabbitmq_federation
+      - rabbitmq_federation_management
+  
+  service:
+    type: ClusterIP
+  
+  override:
+    statefulSet:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: rabbitmq
+                env:
+                  - name: RABBITMQ_DEFAULT_USER
+                    valueFrom:
+                      secretKeyRef:
+                        name: rabbitmq-infisical-secrets
+                        key: RABBITMQ_ADMIN_USERNAME
+                  - name: RABBITMQ_DEFAULT_PASS
+                    valueFrom:
+                      secretKeyRef:
+                        name: rabbitmq-infisical-secrets
+                        key: RABBITMQ_ADMIN_PASSWORD
+  
+  # High availability - spread across nodes
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - rabbitmq
+          topologyKey: kubernetes.io/hostname
+  
+  # Toleration for dedicated nodes (if needed)
+  # tolerations:
+  #   - key: "workload"
+  #     operator: "Equal"
+  #     value: "rabbitmq"
+  #     effect: "NoSchedule"
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: rabbitmq
+  namespace: rabbitmq
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: rabbitmq

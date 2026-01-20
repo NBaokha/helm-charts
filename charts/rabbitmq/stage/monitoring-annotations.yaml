@@ -1,0 +1,25 @@
+---
+# Service annotations for Prometheus scraping
+# This approach works with the standard Prometheus chart (no ServiceMonitor CRD needed)
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-metrics
+  namespace: rabbitmq
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/component: metrics
+  annotations:
+    # Prometheus annotations for automatic discovery
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "15692"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: prometheus
+      port: 15692
+      targetPort: 15692
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: rabbitmq

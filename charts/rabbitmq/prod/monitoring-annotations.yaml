@@ -1,0 +1,97 @@
+---
+# Service annotations for Prometheus scraping
+# This approach works with the standard Prometheus chart (no ServiceMonitor CRD needed)
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq-metrics
+  namespace: rabbitmq
+  labels:
+    app.kubernetes.io/name: rabbitmq
+    app.kubernetes.io/component: metrics
+  annotations:
+    # Prometheus annotations for automatic discovery
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "15692"
+    prometheus.io/path: "/metrics"
+spec:
+  type: ClusterIP
+  ports:
+    - name: prometheus
+      port: 15692
+      targetPort: 15692
+      protocol: TCP
+  selector:
+    app.kubernetes.io/name: rabbitmq
+---
+# Suggestion for networkPolicy for prod 
+# apiVersion: networking.k8s.io/v1
+# kind: NetworkPolicy
+# metadata:
+#   name: rabbitmq
+#   namespace: rabbitmq
+# spec:
+#   podSelector:
+#     matchLabels:
+#       app.kubernetes.io/name: rabbitmq
+#   policyTypes:
+#     - Ingress
+#     - Egress
+#   ingress:
+#     # Allow inter-node communication
+#     - from:
+#       - podSelector:
+#           matchLabels:
+#             app.kubernetes.io/name: rabbitmq
+#       ports:
+#         - protocol: TCP
+#           port: 4369  # EPMD
+#         - protocol: TCP
+#           port: 25672 # Inter-node communication
+#     # Allow AMQP clients
+#     - from:
+#       - namespaceSelector: {}
+#       ports:
+#         - protocol: TCP
+#           port: 5672  # AMQP
+#     # Allow Management UI
+#     - from:
+#       - namespaceSelector: {}
+#       ports:
+#         - protocol: TCP
+#           port: 15672 # Management
+#     # Allow Prometheus scraping (annotation-based)
+#     - from:
+#       - namespaceSelector:
+#           matchLabels:
+#             name: prometheus
+#       ports:
+#         - protocol: TCP
+#           port: 15692 # Prometheus metrics
+#   egress:
+#     # Allow DNS
+#     - to:
+#       - namespaceSelector:
+#           matchLabels:
+#             name: kube-system
+#       ports:
+#         - protocol: UDP
+#           port: 53
+#     # Allow inter-node communication
+#     - to:
+#       - podSelector:
+#           matchLabels:
+#             app.kubernetes.io/name: rabbitmq
+#       ports:
+#         - protocol: TCP
+#           port: 4369
+#         - protocol: TCP
+#           port: 25672
+#     # Allow Kubernetes API access
+#     - to:
+#       - namespaceSelector:
+#           matchLabels:
+#             name: default
+#       ports:
+#         - protocol: TCP
+#           port: 443
