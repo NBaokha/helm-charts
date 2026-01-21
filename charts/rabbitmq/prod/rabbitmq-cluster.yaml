@@ -22,7 +22,6 @@ spec:
   
   persistence:
     enabled: true
-    storageClassName: longhorn
     storage: 20Gi
   
   rabbitmq:
