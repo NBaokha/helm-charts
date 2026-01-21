@@ -7,8 +7,7 @@ metadata:
     app.kubernetes.io/name: rabbitmq
     app.kubernetes.io/component: messaging
     environment: stage
-  annotations:
-    longhorn.io/replica-count: "2"
+
 spec:
   replicas: 2  # 2 replicas for stage (balance between HA testing and resources)
   
@@ -23,7 +22,6 @@ spec:
       memory: 4Gi
   
   persistence:
-    storageClassName: longhorn
     storage: 5Gi  # Reduceret fra 20Gi til 5Gi for stage
   
   rabbitmq:

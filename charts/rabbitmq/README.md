@@ -202,7 +202,6 @@ spec:
       memory: 4Gi
   
   persistence:
-    storageClassName: longhorn
     storage: 20Gi
   
   rabbitmq:
