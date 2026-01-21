@@ -8,15 +8,7 @@ metadata:
     app.kubernetes.io/component: messaging
     environment: prod
 spec:
-  capacity: 
-    storage: 10Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Recycle
-  storageClassName: slow
-
-  replicas: 3
+  replicaCount: 3
   
   image: rabbitmq:4.1.3-management
   
@@ -29,6 +21,7 @@ spec:
       memory: 4Gi
   
   persistence:
+    enabled: true
     storageClassName: longhorn
     storage: 20Gi
   
@@ -75,7 +68,7 @@ spec:
                     value: guest
                   - name: RABBITMQ_DEFAULT_PASS
                     value: guest
-  
+
   # High availability - spread across nodes
   affinity:
     podAntiAffinity:
