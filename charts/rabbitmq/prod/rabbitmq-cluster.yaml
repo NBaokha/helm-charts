@@ -22,7 +22,7 @@ spec:
   
   persistence:
     storage: 5Gi
-    storageClassName: default
+    storageClassName: testing
   
   rabbitmq:
     additionalConfig: |
