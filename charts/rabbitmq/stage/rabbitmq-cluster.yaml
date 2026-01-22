@@ -65,15 +65,9 @@ spec:
               - name: rabbitmq
                 env:
                   - name: RABBITMQ_DEFAULT_USER
-                    valueFrom:
-                      secretKeyRef:
-                        name: rabbitmq-infisical-secrets
-                        key: RABBITMQ_ADMIN_USERNAME
+                    value: guest
                   - name: RABBITMQ_DEFAULT_PASS
-                    valueFrom:
-                      secretKeyRef:
-                        name: rabbitmq-infisical-secrets
-                        key: RABBITMQ_ADMIN_PASSWORD
+                    value: guest
   
   # High availability - spread across nodes
   affinity:
