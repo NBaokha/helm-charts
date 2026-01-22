@@ -20,9 +20,10 @@ spec:
     limits:
       cpu: 2  # Use millicores format to match Kubernetes normalization
       memory: 4Gi
-  
+spec:
   persistence:
-    storage: 5Gi  # Reduceret fra 20Gi til 5Gi for stage
+    storage: 5Gi
+    storageClassName: default
   
   rabbitmq:
     additionalConfig: |

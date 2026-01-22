@@ -21,8 +21,8 @@ spec:
       memory: 4Gi
   
   persistence:
-    enabled: true
-    storage: 20Gi
+    storage: 5Gi
+    storageClassName: default
   
   rabbitmq:
     additionalConfig: |
