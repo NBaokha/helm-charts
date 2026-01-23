@@ -17,10 +17,10 @@ spec:
   ingressClassName: nginx
   tls:
     - hosts:
-        - rabbitmq.stage.saoad.dk
+        - localhost
       secretName: rabbitmq-stage-tls
   rules:
-    - host: rabbitmq.stage.saoad.dk
+    - host: localhost
       http:
         paths:
           - path: /
