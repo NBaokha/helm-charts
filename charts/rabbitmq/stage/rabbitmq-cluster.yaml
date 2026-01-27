@@ -10,8 +10,7 @@ data:
       "users": [
         {
           "name": "guest",
-          "password_hash": "oFHJLBnbGn77UMNfkA3QcJ4WmYo=",
-          "hashing_algorithm": "rabbit_password_hashing_sha256",
+          "password": "guest",
           "tags": ["administrator"]
         }
       ],
@@ -147,11 +146,6 @@ spec:
           spec:
             containers:
               - name: rabbitmq
-                env:
-                  - name: RABBITMQ_DEFAULT_USER
-                    value: guest
-                  - name: RABBITMQ_DEFAULT_PASS
-                    value: guest
                 volumeMounts:
                   - name: definitions
                     mountPath: /etc/rabbitmq/definitions.json
