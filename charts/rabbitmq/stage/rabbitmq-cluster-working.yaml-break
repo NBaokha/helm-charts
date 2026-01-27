@@ -1,5 +1,5 @@
 ---
-# ConfigMap with RabbitMQ definitions (exchanges, queues, bindings, users, policies)
+# Add this ConfigMap at the top or bottom of your rabbitmq-cluster.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -320,6 +320,7 @@ data:
       ]
     }
 ---
+
 apiVersion: rabbitmq.com/v1beta1
 kind: RabbitmqCluster
 metadata:
@@ -349,9 +350,6 @@ spec:
   
   rabbitmq:
     additionalConfig: |
-      # Load definitions on startup
-      management.load_definitions = /etc/rabbitmq/definitions.json
-      
       # Staging environment configuration
       # Note: cluster_formation.* and cluster_partition_handling are set by operator defaults
 
@@ -377,8 +375,6 @@ spec:
       - rabbitmq_shovel_management
       - rabbitmq_federation
       - rabbitmq_federation_management
-      # Uncomment if using delayed message exchange
-      # - rabbitmq_delayed_message_exchange
   
   service:
     type: ClusterIP
@@ -395,16 +391,6 @@ spec:
                     value: guest
                   - name: RABBITMQ_DEFAULT_PASS
                     value: guest
-                # Mount the definitions file
-                volumeMounts:
-                  - name: definitions
-                    mountPath: /etc/rabbitmq/definitions.json
-                    subPath: definitions.json
-            # Add the definitions volume
-            volumes:
-              - name: definitions
-                configMap:
-                  name: rabbitmq-definitions
   
   # High availability - spread across nodes
   affinity:
