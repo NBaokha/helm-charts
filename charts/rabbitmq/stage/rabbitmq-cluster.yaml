@@ -1,5 +1,5 @@
 ---
-# ConfigMap with RabbitMQ definitions (exchanges, queues, bindings, users, policies)
+# Add this ConfigMap at the top or bottom of your rabbitmq-cluster.yaml
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -8,100 +8,9 @@ metadata:
 data:
   definitions.json: |
     {
-      "rabbit_version": "4.1.3",
-      "rabbitmq_version": "4.1.3",
-      "users": [
-        {
-          "name": "admin",
-          "password_hash": "JBbKFh8rsyXWHMHkVnXLHPPsnp+VH+vhUdGi7FHZI+XTjVLQ",
-          "hashing_algorithm": "rabbit_password_hashing_sha256",
-          "tags": ["administrator"]
-        },
-        {
-          "name": "app-user",
-          "password_hash": "JBbKFh8rsyXWHMHkVnXLHPPsnp+VH+vhUdGi7FHZI+XTjVLQ",
-          "hashing_algorithm": "rabbit_password_hashing_sha256",
-          "tags": ["management"]
-        }
-      ],
-      "vhosts": [
-        {
-          "name": "/"
-        },
-        {
-          "name": "/production"
-        }
-      ],
-      "permissions": [
-        {
-          "user": "admin",
-          "vhost": "/",
-          "configure": ".*",
-          "write": ".*",
-          "read": ".*"
-        },
-        {
-          "user": "app-user",
-          "vhost": "/",
-          "configure": ".*",
-          "write": ".*",
-          "read": ".*"
-        },
-        {
-          "user": "app-user",
-          "vhost": "/production",
-          "configure": ".*",
-          "write": ".*",
-          "read": ".*"
-        }
-      ],
-      "topic_permissions": [],
-      "parameters": [],
-      "global_parameters": [
-        {
-          "name": "cluster_name",
-          "value": "rabbitmq-stage"
-        }
-      ],
-      "policies": [
-        {
-          "vhost": "/",
-          "name": "ha-all",
-          "pattern": ".*",
-          "apply-to": "all",
-          "definition": {
-            "ha-mode": "all",
-            "ha-sync-mode": "automatic"
-          },
-          "priority": 0
-        },
-        {
-          "vhost": "/",
-          "name": "ttl-policy",
-          "pattern": "^ttl\\.",
-          "apply-to": "queues",
-          "definition": {
-            "message-ttl": 3600000,
-            "expires": 7200000
-          },
-          "priority": 1
-        },
-        {
-          "vhost": "/production",
-          "name": "ha-production",
-          "pattern": ".*",
-          "apply-to": "all",
-          "definition": {
-            "ha-mode": "exactly",
-            "ha-params": 2,
-            "ha-sync-mode": "automatic"
-          },
-          "priority": 0
-        }
-      ],
       "exchanges": [
         {
-          "name": "events",
+          "name": "my-exchange",
           "vhost": "/",
           "type": "topic",
           "durable": true,
@@ -110,58 +19,9 @@ data:
           "arguments": {}
         },
         {
-          "name": "commands",
+          "name": "my-direct-exchange",
           "vhost": "/",
           "type": "direct",
-          "durable": true,
-          "auto_delete": false,
-          "internal": false,
-          "arguments": {}
-        },
-        {
-          "name": "notifications",
-          "vhost": "/",
-          "type": "fanout",
-          "durable": true,
-          "auto_delete": false,
-          "internal": false,
-          "arguments": {}
-        },
-        {
-          "name": "tasks",
-          "vhost": "/",
-          "type": "topic",
-          "durable": true,
-          "auto_delete": false,
-          "internal": false,
-          "arguments": {
-            "alternate-exchange": "tasks.dlx"
-          }
-        },
-        {
-          "name": "tasks.dlx",
-          "vhost": "/",
-          "type": "direct",
-          "durable": true,
-          "auto_delete": false,
-          "internal": false,
-          "arguments": {}
-        },
-        {
-          "name": "delayed-exchange",
-          "vhost": "/",
-          "type": "x-delayed-message",
-          "durable": true,
-          "auto_delete": false,
-          "internal": false,
-          "arguments": {
-            "x-delayed-type": "direct"
-          }
-        },
-        {
-          "name": "prod.events",
-          "vhost": "/production",
-          "type": "topic",
           "durable": true,
           "auto_delete": false,
           "internal": false,
@@ -170,156 +30,26 @@ data:
       ],
       "queues": [
         {
-          "name": "user.created",
+          "name": "my-queue",
           "vhost": "/",
           "durable": true,
           "auto_delete": false,
           "arguments": {}
-        },
-        {
-          "name": "user.updated",
-          "vhost": "/",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {}
-        },
-        {
-          "name": "order.processing",
-          "vhost": "/",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {
-            "x-message-ttl": 3600000,
-            "x-max-length": 10000,
-            "x-overflow": "reject-publish"
-          }
-        },
-        {
-          "name": "email.queue",
-          "vhost": "/",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {
-            "x-max-priority": 10
-          }
-        },
-        {
-          "name": "tasks.processing",
-          "vhost": "/",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {
-            "x-dead-letter-exchange": "tasks.dlx",
-            "x-dead-letter-routing-key": "failed"
-          }
-        },
-        {
-          "name": "tasks.dlq",
-          "vhost": "/",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {}
-        },
-        {
-          "name": "notification.all",
-          "vhost": "/",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {}
-        },
-        {
-          "name": "ttl.example",
-          "vhost": "/",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {}
-        },
-        {
-          "name": "prod.critical.events",
-          "vhost": "/production",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {
-            "x-max-priority": 10
-          }
         }
       ],
       "bindings": [
         {
-          "source": "events",
+          "source": "my-exchange",
           "vhost": "/",
-          "destination": "user.created",
+          "destination": "my-queue",
           "destination_type": "queue",
-          "routing_key": "user.created",
-          "arguments": {}
-        },
-        {
-          "source": "events",
-          "vhost": "/",
-          "destination": "user.updated",
-          "destination_type": "queue",
-          "routing_key": "user.updated",
-          "arguments": {}
-        },
-        {
-          "source": "events",
-          "vhost": "/",
-          "destination": "user.updated",
-          "destination_type": "queue",
-          "routing_key": "user.*",
-          "arguments": {}
-        },
-        {
-          "source": "commands",
-          "vhost": "/",
-          "destination": "order.processing",
-          "destination_type": "queue",
-          "routing_key": "order.process",
-          "arguments": {}
-        },
-        {
-          "source": "commands",
-          "vhost": "/",
-          "destination": "email.queue",
-          "destination_type": "queue",
-          "routing_key": "email.send",
-          "arguments": {}
-        },
-        {
-          "source": "notifications",
-          "vhost": "/",
-          "destination": "notification.all",
-          "destination_type": "queue",
-          "routing_key": "",
-          "arguments": {}
-        },
-        {
-          "source": "tasks",
-          "vhost": "/",
-          "destination": "tasks.processing",
-          "destination_type": "queue",
-          "routing_key": "task.#",
-          "arguments": {}
-        },
-        {
-          "source": "tasks.dlx",
-          "vhost": "/",
-          "destination": "tasks.dlq",
-          "destination_type": "queue",
-          "routing_key": "failed",
-          "arguments": {}
-        },
-        {
-          "source": "prod.events",
-          "vhost": "/production",
-          "destination": "prod.critical.events",
-          "destination_type": "queue",
-          "routing_key": "critical.#",
+          "routing_key": "my.routing.key",
           "arguments": {}
         }
       ]
     }
 ---
+
 apiVersion: rabbitmq.com/v1beta1
 kind: RabbitmqCluster
 metadata:
@@ -349,6 +79,7 @@ spec:
   
   rabbitmq:
     additionalConfig: |
+
       # Load definitions on startup
       management.load_definitions = /etc/rabbitmq/definitions.json
       
@@ -377,35 +108,32 @@ spec:
       - rabbitmq_shovel_management
       - rabbitmq_federation
       - rabbitmq_federation_management
-      # Uncomment if using delayed message exchange
-      # - rabbitmq_delayed_message_exchange
   
-  service:
+service:
     type: ClusterIP
-  
-  override:
-    statefulSet:
-      spec:
-        template:
-          spec:
-            containers:
-              - name: rabbitmq
-                env:
-                  - name: RABBITMQ_DEFAULT_USER
-                    value: guest
-                  - name: RABBITMQ_DEFAULT_PASS
-                    value: guest
-                # Mount the definitions file
-                volumeMounts:
-                  - name: definitions
-                    mountPath: /etc/rabbitmq/definitions.json
-                    subPath: definitions.json
-            # Add the definitions volume
-            volumes:
-              - name: definitions
-                configMap:
-                  name: rabbitmq-definitions
-  
+
+override:
+  statefulSet:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: rabbitmq
+              env:
+                - name: RABBITMQ_DEFAULT_USER
+                  value: guest
+                - name: RABBITMQ_DEFAULT_PASS
+                  value: guest
+              # Mount the definitions file
+              volumeMounts:
+                - name: definitions
+                  mountPath: /etc/rabbitmq/definitions.json
+                  subPath: definitions.json
+          # Add the definitions volume
+          volumes:
+            - name: definitions
+              configMap:
+                name: rabbitmq-definitions
   # High availability - spread across nodes
   affinity:
     podAntiAffinity:
