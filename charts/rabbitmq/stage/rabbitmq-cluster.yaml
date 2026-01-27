@@ -17,33 +17,18 @@ data:
           "auto_delete": false,
           "internal": false,
           "arguments": {}
-        },
+        }
+      ]
+    },
+    {
+      "exchanges": [
         {
-          "name": "my-direct-exchange",
+          "name": "nazarii-exchange",
           "vhost": "/",
-          "type": "direct",
+          "type": "topic",
           "durable": true,
           "auto_delete": false,
           "internal": false,
-          "arguments": {}
-        }
-      ],
-      "queues": [
-        {
-          "name": "my-queue",
-          "vhost": "/",
-          "durable": true,
-          "auto_delete": false,
-          "arguments": {}
-        }
-      ],
-      "bindings": [
-        {
-          "source": "my-exchange",
-          "vhost": "/",
-          "destination": "my-queue",
-          "destination_type": "queue",
-          "routing_key": "my.routing.key",
           "arguments": {}
         }
       ]
@@ -79,7 +64,6 @@ spec:
   
   rabbitmq:
     additionalConfig: |
-
       # Load definitions on startup
       management.load_definitions = /etc/rabbitmq/definitions.json
       
@@ -109,31 +93,31 @@ spec:
       - rabbitmq_federation
       - rabbitmq_federation_management
   
-service:
+  service:
     type: ClusterIP
-
-override:
-  statefulSet:
-    spec:
-      template:
-        spec:
-          containers:
-            - name: rabbitmq
-              env:
-                - name: RABBITMQ_DEFAULT_USER
-                  value: guest
-                - name: RABBITMQ_DEFAULT_PASS
-                  value: guest
-              # Mount the definitions file
-              volumeMounts:
-                - name: definitions
-                  mountPath: /etc/rabbitmq/definitions.json
-                  subPath: definitions.json
-          # Add the definitions volume
-          volumes:
+  
+  override:
+    statefulSet:
+      spec:
+        template:
+          spec:
+            containers:
+              - name: rabbitmq
+                env:
+                  - name: RABBITMQ_DEFAULT_USER
+                    value: guest
+                  - name: RABBITMQ_DEFAULT_PASS
+                    value: guest
+                volumeMounts:
+                  - name: definitions
+                    mountPath: /etc/rabbitmq/definitions.json
+                    subPath: definitions.json
+            volumes:
             - name: definitions
               configMap:
                 name: rabbitmq-definitions
+
+  
   # High availability - spread across nodes
   affinity:
     podAntiAffinity:
