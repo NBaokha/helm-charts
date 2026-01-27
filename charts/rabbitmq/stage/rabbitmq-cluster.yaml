@@ -19,19 +19,6 @@ data:
           "arguments": {}
         }
       ]
-    },
-    {
-      "exchanges": [
-        {
-          "name": "nazarii-exchange",
-          "vhost": "/",
-          "type": "topic",
-          "durable": true,
-          "auto_delete": false,
-          "internal": false,
-          "arguments": {}
-        }
-      ]
     }
 ---
 
