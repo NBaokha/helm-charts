@@ -5,11 +5,28 @@ metadata:
   name: rabbitmq-definitions
   namespace: rabbitmq
 data:
- definitions.json: |
+  definitions.json: |
     {
+      "users": [
+        {
+          "name": "guest",
+          "password_hash": "oFHJLBnbGn77UMNfkA3QcJ4WmYo=",
+          "hashing_algorithm": "rabbit_password_hashing_sha256",
+          "tags": ["administrator"]
+        }
+      ],
       "vhosts": [
         {
           "name": "/"
+        }
+      ],
+      "permissions": [
+        {
+          "user": "guest",
+          "vhost": "/",
+          "configure": ".*",
+          "write": ".*",
+          "read": ".*"
         }
       ],
       "exchanges": [
