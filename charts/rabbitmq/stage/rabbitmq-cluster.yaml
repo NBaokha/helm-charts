@@ -7,28 +7,7 @@ metadata:
   namespace: rabbitmq
 data:
   definitions.json: |
-    "exchanges": [
-    {
-      "name": "my-exchange",
-      "vhost": "/",
-      "type": "topic",
-      "durable": true,
-      "auto_delete": false,
-      "internal": false,
-      "arguments": {}
-    }
-    ]
-    },
-    {
-    "exchanges": [{
-      "name": "nazarii-exchange",
-      "vhost": "/",
-      "type": "topic",
-      "durable": true,
-      "auto_delete": false,
-      "internal": false,
-      "arguments": {}
-    }]
+  [{"exchanges":[{"name":"my-exchange","vhost":"/","type":"topic","durable":true,"auto_delete":false,"internal":false,"arguments":{}}]},{"exchanges":[{"name":"nazarii-exchange","vhost":"/","type":"topic","durable":true,"auto_delete":false,"internal":false,"arguments":{}}]}]
 ---
 
 apiVersion: rabbitmq.com/v1beta1
