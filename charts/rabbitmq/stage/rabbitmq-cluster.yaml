@@ -64,6 +64,15 @@ data:
           "auto_delete": false,
           "internal": false,
           "arguments": {}
+        },
+        {
+          "name": "NBA",
+          "vhost": "/",
+          "type": "topic",
+          "durable": true,
+          "auto_delete": false,
+          "internal": false,
+          "arguments": {}
         }
       ],
       "queues": [
