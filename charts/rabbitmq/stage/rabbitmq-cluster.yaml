@@ -20,7 +20,7 @@ spec:
     limits:
       cpu: 2  # Use millicores format to match Kubernetes normalization
       memory: 4Gi
-spec:
+      
   persistence:
     storage: 5Gi
     storageClassName: testing
