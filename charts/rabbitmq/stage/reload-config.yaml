@@ -24,9 +24,9 @@ spec:
               echo "Waiting for RabbitMQ to be ready..."
               
               # Wait for RabbitMQ to be ready
-              until curl -f -u guest:guest http://rabbitmq-server-0.rabbitmq:15672/api/overview; do
+              until curl -f -u guest:guest http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/overview; do
                 echo "Waiting for RabbitMQ Management API..."
-                echo "connecting: http://rabbitmq-server-0.rabbitmq:15672/api/overview"
+                echo "connecting: http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/overview"
                 sleep 5
               done
               
@@ -37,7 +37,7 @@ spec:
                 -X POST \
                 -H "Content-Type: application/json" \
                 -d @/definitions/definitions.json \
-                http://rabbitmq-server-0.rabbitmq:15672/api/definitions
+                http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/definitions
               
               if [ $? -eq 0 ]; then
                 echo "✓ Definitions loaded successfully!"
