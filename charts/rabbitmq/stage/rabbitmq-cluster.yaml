@@ -64,15 +64,6 @@ data:
           "auto_delete": false,
           "internal": false,
           "arguments": {}
-        },
-        {
-          "name": "NBA",
-          "vhost": "/",
-          "type": "topic",
-          "durable": true,
-          "auto_delete": false,
-          "internal": false,
-          "arguments": {}
         }
       ],
       "queues": [
@@ -161,6 +152,11 @@ spec:
     statefulSet:
       spec:
         template:
+          metadata:
+            annotations:
+              # Force pod restart when ConfigMap changes
+              checksum/config: "{{ include (print $.Template.BasePath \"/configmap.yaml\") . | sha256sum }}"
+
           spec:
             containers:
               - name: rabbitmq
@@ -204,4 +200,3 @@ spec:
     matchLabels:
       app.kubernetes.io/name: rabbitmq
 ---
-# Add this ConfigMap at the top or bottom of your rabbitmq-cluster.yaml
