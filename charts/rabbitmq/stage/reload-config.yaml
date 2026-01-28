@@ -24,7 +24,7 @@ spec:
               echo "Waiting for RabbitMQ to be ready..."
               
               # Wait for RabbitMQ to be ready
-              until curl -f -u guest:guest http://localhost:15672/api/overview 2>; do
+              until curl -f -u guest:guest http://localhost:15672/api/overview; do
                 echo "Waiting for RabbitMQ Management API..."
                 echo "connecting: http://localhost:15672/api/overview"
                 sleep 5
