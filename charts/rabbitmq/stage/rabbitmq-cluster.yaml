@@ -64,15 +64,6 @@ data:
           "auto_delete": false,
           "internal": false,
           "arguments": {}
-        },
-        {
-          "name": "NBA",
-          "vhost": "/",
-          "type": "topic",
-          "durable": true,
-          "auto_delete": false,
-          "internal": false,
-          "arguments": {}
         }
       ],
       "queues": [
@@ -148,7 +139,6 @@ spec:
       cluster_keepalive_interval = 10000
     
     additionalPlugins:
-      # Note: rabbitmq_management, rabbitmq_prometheus, rabbitmq_peer_discovery_k8s are essential plugins (always enabled)
       - rabbitmq_shovel
       - rabbitmq_shovel_management
       - rabbitmq_federation
@@ -186,12 +176,6 @@ spec:
                   - rabbitmq
           topologyKey: kubernetes.io/hostname
   
-  # Toleration for dedicated nodes (if needed)
-  # tolerations:
-  #   - key: "workload"
-  #     operator: "Equal"
-  #     value: "rabbitmq"
-  #     effect: "NoSchedule"
 ---
 apiVersion: policy/v1
 kind: PodDisruptionBudget
@@ -199,7 +183,7 @@ metadata:
   name: rabbitmq
   namespace: rabbitmq
 spec:
-  minAvailable: 1  # For 2 replicas: allow 1 to be disrupted, keep minimum 1 running
+  minAvailable: 1 
   selector:
     matchLabels:
       app.kubernetes.io/name: rabbitmq
