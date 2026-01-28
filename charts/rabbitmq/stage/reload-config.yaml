@@ -26,6 +26,7 @@ spec:
               # Wait for RabbitMQ to be ready
               until curl -f -u guest:guest http://localhost:15672/api/overview 2>/dev/null; do
                 echo "Waiting for RabbitMQ Management API..."
+                echo "connecting: http://localhost:15672/api/overview"
                 sleep 5
               done
               
