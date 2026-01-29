@@ -1,0 +1,6 @@
+apiVersion: v2
+name: rabbitmq
+description: RabbitMQ cluster deployment with custom definitions
+type: application
+version: 1.0.0
+appVersion: "4.1.3"
