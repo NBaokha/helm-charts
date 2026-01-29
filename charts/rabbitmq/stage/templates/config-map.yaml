@@ -4,5 +4,5 @@ metadata:
   name: rabbitmq-definitions
   namespace: rabbitmq
 data:
-  definitions.json: |
+  definitions.json: |-
 {{ .Values.definitions | toJson | indent 4 }}
