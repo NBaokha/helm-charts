@@ -2,7 +2,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: rabbitmq-definitions
-  namespace: {{ .Values.rabbitmq.namespace }}
+  namespace: rabbitmq
 data:
   definitions.json: |
-{{ .Values.rabbitmq.definitions | toJson | indent 4 }}
+{{ .Values.definitions | toJson | indent 4 }}
