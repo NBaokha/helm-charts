@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Release.Namespace }}
 data:
    definitions.json: |
-{{ .Files.Get "files/definitions.json" | indent 4 }}
+  {{ .Files.Get "files/definitions.json" | indent 4 }}
 
 ---
 apiVersion: rabbitmq.com/v1beta1
