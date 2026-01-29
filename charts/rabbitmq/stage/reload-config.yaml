@@ -1,16 +1,14 @@
 ---
-# Job to reload definitions via Management API
 apiVersion: batch/v1
 kind: Job
 metadata:
   name: rabbitmq-reload-definitions
   namespace: rabbitmq
   annotations:
-    # ArgoCD will run this job after syncing
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
-  ttlSecondsAfterFinished: 300  # Clean up after 5 minutes
+  ttlSecondsAfterFinished: 300
   template:
     spec:
       restartPolicy: OnFailure
