@@ -3,8 +3,7 @@ kind: ConfigMap
 metadata:
   name: rabbitmq
 data:
-  {{- $files := .Files }}
-  {{- range tuple "definitions.json" }}
-  {{ . }}: |-
-    {{ $files.Get . }}
+  {{- range $path, $_ := .Files.Glob "definitions.json" }}
+  {{ base $path }}: |-
+    {{ $.Files.Get $path }}
   {{- end }}
