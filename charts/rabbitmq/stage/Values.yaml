@@ -22,49 +22,42 @@ definitions:
       durable: true
       auto_delete: false
       internal: false
-      arguments: {}
     - name: my-direct-exchange
       vhost: /
       type: direct
       durable: true
       auto_delete: false
       internal: false
-      arguments: {}
     - name: nazarii-exchange
       vhost: /
       type: topic
       durable: true
       auto_delete: false
       internal: false
-      arguments: {}
     - name: some-cool-exchange
       vhost: /
       type: topic
       durable: true
       auto_delete: false
       internal: false
-      arguments: {}
     - name: even-more-cool-exchange
       vhost: /
       type: topic
       durable: true
       auto_delete: false
       internal: false
-      arguments: {}
     - name: banger
       vhost: /
       type: topic
       durable: true
       auto_delete: false
       internal: false
-      arguments: {}
 
   queues:
     - name: my-queue
       vhost: /
       durable: true
       auto_delete: false
-      arguments: {}
 
   bindings:
     - source: my-exchange
@@ -72,4 +65,3 @@ definitions:
       destination: my-queue
       destination_type: queue
       routing_key: my.routing.key
-      arguments: {}
