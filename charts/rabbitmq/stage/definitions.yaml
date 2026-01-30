@@ -33,12 +33,12 @@ exchanges:
     durable: true
     auto_delete: false
     internal: false
-  - name: some-cool-exchange
-    vhost: /
-    type: topic
-    durable: true
-    auto_delete: false
-    internal: false
+#  - name: some-cool-exchange
+#    vhost: /
+#    type: topic
+#    durable: true
+#    auto_delete: false
+#    internal: false
   - name: even-more-cool-exchange
     vhost: /
     type: topic
