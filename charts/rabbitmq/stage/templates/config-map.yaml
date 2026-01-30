@@ -1,8 +1,8 @@
-#apiVersion: v1
-#kind: ConfigMap
-#metadata:
-#  name: rabbitmq-definitions
-#  namespace: rabbitmq
-#data:
-#  definitions.json: |-
-#{{ .Values.definitions | toJson | indent 4 }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-definitions
+  namespace: rabbitmq
+data:
+  definitions.json: |
+{{ .Files.Get "definitions.yaml" | fromYaml | toJson | indent 4 }}
