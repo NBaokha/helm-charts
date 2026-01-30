@@ -45,12 +45,12 @@ exchanges:
     durable: true
     auto_delete: false
     internal: false
-  - name: banger
-    vhost: /
-    type: topic
-    durable: true
-    auto_delete: false
-    internal: false
+#  - name: banger
+#    vhost: /
+#    type: topic
+#    durable: true
+#    auto_delete: false
+#    internal: false
 
 queues:
   - name: my-queue
