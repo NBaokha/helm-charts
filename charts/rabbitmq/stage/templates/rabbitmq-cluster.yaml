@@ -63,6 +63,9 @@ spec:
     statefulSet:
       spec:
         template:
+          metadata:
+            annotations:
+              checksum/config: {{ include (print $.Template.BasePath "/config-map.yaml") . | sha256sum }}
           spec:
             containers:
               - name: rabbitmq
@@ -74,6 +77,7 @@ spec:
             - name: definitions
               configMap:
                 name: rabbitmq-definitions
+
 
   
   # High availability - spread across nodes
