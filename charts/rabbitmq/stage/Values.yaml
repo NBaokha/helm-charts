@@ -1,67 +1,67 @@
-definitions:
-  users:
-    - name: guest
-      password: guest
-      tags:
-        - administrator
-
-  vhosts:
-    - name: /
-
-  permissions:
-    - user: guest
-      vhost: /
-      configure: ".*"
-      write: ".*"
-      read: ".*"
-
-  exchanges:
-    - name: my-exchange
-      vhost: /
-      type: topic
-      durable: true
-      auto_delete: false
-      internal: false
-    - name: my-direct-exchange
-      vhost: /
-      type: direct
-      durable: true
-      auto_delete: false
-      internal: false
-    - name: nazarii-exchange
-      vhost: /
-      type: topic
-      durable: true
-      auto_delete: false
-      internal: false
-    - name: some-cool-exchange
-      vhost: /
-      type: topic
-      durable: true
-      auto_delete: false
-      internal: false
-    - name: even-more-cool-exchange
-      vhost: /
-      type: topic
-      durable: true
-      auto_delete: false
-      internal: false
-    - name: banger
-      vhost: /
-      type: topic
-      durable: true
-      auto_delete: false
-      internal: false
-
-  queues:
-    - name: my-queue
-      vhost: /
-      durable: true
-      auto_delete: false
-
-  bindings:
-    - source: my-exchange
-      vhost: /
-      destination: my-queue
-      destination_type: queue
-      routing_key: my.routing.key
+#definitions:
+#  users:
+#    - name: guest
+#      password: guest
+#      tags:
+#        - administrator
+#
+#  vhosts:
+#    - name: /
+#
+#  permissions:
+#    - user: guest
+#      vhost: /
+#      configure: ".*"
+#      write: ".*"
+#      read: ".*"
+#
+#  exchanges:
+#    - name: my-exchange
+#      vhost: /
+#      type: topic
+#      durable: true
+#      auto_delete: false
+#      internal: false
+#    - name: my-direct-exchange
+#      vhost: /
+#      type: direct
+#      durable: true
+#      auto_delete: false
+#      internal: false
+#    - name: nazarii-exchange
+#      vhost: /
+#      type: topic
+#      durable: true
+#      auto_delete: false
+#      internal: false
+#    - name: some-cool-exchange
+#      vhost: /
+#      type: topic
+#      durable: true
+#      auto_delete: false
+#      internal: false
+#    - name: even-more-cool-exchange
+#      vhost: /
+#      type: topic
+#      durable: true
+#      auto_delete: false
+#      internal: false
+#    - name: banger
+#      vhost: /
+#      type: topic
+#      durable: true
+#      auto_delete: false
+#      internal: false
+#
+#  queues:
+#    - name: my-queue
+#      vhost: /
+#      durable: true
+#      auto_delete: false
+#
+#  bindings:
+#    - source: my-exchange
+#      vhost: /
+#      destination: my-queue
+#      destination_type: queue
+#      routing_key: my.routing.key

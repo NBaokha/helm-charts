@@ -1,52 +1,52 @@
-#---
-#apiVersion: batch/v1
-#kind: Job
-#metadata:
-#  name: rabbitmq-reload-definitions
-#  namespace: rabbitmq
-#  annotations:
-#    argocd.argoproj.io/hook: PostSync
-#    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
-#spec:
-#  ttlSecondsAfterFinished: 300
-#  template:
-#    spec:
-#      restartPolicy: OnFailure
-#      containers:
-#        - name: reload-definitions
-#          image: curlimages/curl:latest
-#          command:
-#            - /bin/sh
-#            - -c
-#            - |
-#              echo "Waiting for RabbitMQ to be ready..."
-#              
-#              # Wait for RabbitMQ to be ready
-#              until curl -f -u guest:guest http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/overview; do
-#                echo "Waiting for RabbitMQ Management API..."
-#                echo "connecting: http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/overview"
-#                sleep 5
-#              done
-#              
-#              echo "RabbitMQ is ready. Loading definitions..."
-#              
-#              # Load definitions from ConfigMap
-#              curl -u guest:guest \
-#                -X POST \
-#                -H "Content-Type: application/json" \
-#                -d @/definitions/definitions.json \
-#                http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/definitions
-#              
-#              if [ $? -eq 0 ]; then
-#                echo "✓ Definitions loaded successfully!"
-#              else
-#                echo "✗ Failed to load definitions"
-#                exit 1
-#              fi
-#          volumeMounts:
-#            - name: definitions
-#              mountPath: /definitions
-#      volumes:
-#        - name: definitions
-#          configMap:
-#            name: rabbitmq-definitions
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rabbitmq-reload-definitions
+  namespace: rabbitmq
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: reload-definitions
+          image: curlimages/curl:latest
+          command:
+            - /bin/sh
+            - -c
+            - |
+              echo "Waiting for RabbitMQ to be ready..."
+              
+              # Wait for RabbitMQ to be ready
+              until curl -f -u guest:guest http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/overview; do
+                echo "Waiting for RabbitMQ Management API..."
+                echo "connecting: http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/overview"
+                sleep 5
+              done
+              
+              echo "RabbitMQ is ready. Loading definitions..."
+              
+              # Load definitions from ConfigMap
+              curl -u guest:guest \
+                -X POST \
+                -H "Content-Type: application/json" \
+                -d @/definitions/definitions.json \
+                http://rabbitmq.rabbitmq.svc.cluster.local:15672/api/definitions
+              
+              if [ $? -eq 0 ]; then
+                echo "✓ Definitions loaded successfully!"
+              else
+                echo "✗ Failed to load definitions"
+                exit 1
+              fi
+          volumeMounts:
+            - name: definitions
+              mountPath: /definitions
+      volumes:
+        - name: definitions
+          configMap:
+            name: rabbitmq-definitions
