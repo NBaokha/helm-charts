@@ -39,13 +39,6 @@ ingress:
   pathType: Prefix
   annotations: {}
 
-infisical:
-  enabled: false
-  autoReload: true
-  hostname: "https://infisical.prod.saoad.dk"
-  projectSlug: "matomo-md9y"
-  environment: "dev"
-
 storage:
   storageClassName: longhorn
   config:
