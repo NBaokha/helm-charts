@@ -1,0 +1,79 @@
+app:
+  name: matomo
+  namespace: matomo
+  environment: dev
+  replicas: 1
+  image: matomo
+  tag: "5.6.1-apache"
+  port: 80
+  pullPolicy: IfNotPresent
+  resources:
+    limits:
+      cpu: 500m
+      memory: 1Gi
+    requests:
+      cpu: 250m
+      memory: 512Mi
+  healthcheck:
+    path: /matomo.php
+    liveness:
+      initialDelaySeconds: 120
+      periodSeconds: 60
+    readiness:
+      initialDelaySeconds: 30
+      periodSeconds: 30
+  env:
+    MATOMO_DATABASE_ADAPTER: "mysql"
+    MATOMO_DATABASE_TABLES_PREFIX: "matomo_"
+    PHP_MEMORY_LIMIT: "1G"
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  host: ""
+  path: /
+  pathType: Prefix
+  annotations: {}
+
+infisical:
+  enabled: false
+  autoReload: true
+  hostname: "https://infisical.prod.saoad.dk"
+  projectSlug: "matomo-md9y"
+  environment: "dev"
+
+storage:
+  storageClassName: longhorn
+  config:
+    size: 1Gi
+  plugins:
+    size: 5Gi
+  misc:
+    size: 2Gi
+  tmp:
+    size: 2Gi
+
+mariadb:
+  enabled: false
+  storageSize: 5Gi
+
+archiving:
+  enabled: false
+  schedule: "5 * * * *"
+  url: ""
+  concurrent: 4
+  concurrentArchivers: 2
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  backoffLimit: 2
+  resources:
+    limits:
+      cpu: 1000m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi

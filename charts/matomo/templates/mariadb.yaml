@@ -1,0 +1,78 @@
+{{- if .Values.mariadb.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}-mariadb
+  namespace: {{ .Values.app.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}-mariadb
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}-mariadb
+    spec:
+      containers:
+      - name: mariadb
+        image: mariadb:11.8
+        ports:
+        - containerPort: 3306
+        envFrom:
+        - secretRef:
+            name: {{ .Values.app.name }}
+        env:
+        - name: MARIADB_AUTO_UPGRADE
+          value: "1"
+        args:
+        - --max-allowed-packet=64M
+        volumeMounts:
+        - name: mariadb-data
+          mountPath: /var/lib/mysql
+        livenessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "mariadb-admin ping -u root -p$MARIADB_ROOT_PASSWORD"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - "mariadb-admin ping -u root -p$MARIADB_ROOT_PASSWORD"
+          initialDelaySeconds: 5
+          periodSeconds: 5
+      volumes:
+      - name: mariadb-data
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-mariadb-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app.name }}-mariadb
+  namespace: {{ .Values.app.namespace }}
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: {{ .Values.app.name }}-mariadb
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-mariadb-pvc
+  namespace: {{ .Values.app.namespace }}
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ .Values.mariadb.storageSize }}
+  storageClassName: longhorn
+{{- end }}

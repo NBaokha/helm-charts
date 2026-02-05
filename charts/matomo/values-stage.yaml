@@ -1,0 +1,32 @@
+app:
+  replicas: 2
+  environment: stage
+  env:
+    MATOMO_DATABASE_ADAPTER: "mysql"
+    MATOMO_DATABASE_TABLES_PREFIX: "matomo_"
+    PHP_MEMORY_LIMIT: "512M"
+    PHP_LOG_ERRORS: "On"
+    PHP_ERROR_LOG: "/dev/stderr"
+    PHP_DISPLAY_ERRORS: "On"
+    PHP_ERROR_REPORTING: "E_ALL"
+
+ingress:
+  enabled: true
+  host: matomo.stage.saoad.dk
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+infisical:
+  enabled: true
+  environment: "staging"
+
+mariadb:
+  enabled: true
+  storageSize: 10Gi
+
+archiving:
+  enabled: true
+  schedule: "5 * * * *"
+  url: "https://matomo.stage.saoad.dk"

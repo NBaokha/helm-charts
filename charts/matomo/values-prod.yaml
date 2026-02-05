@@ -1,0 +1,39 @@
+app:
+  replicas: 2
+  environment: prod
+  resources:
+    limits:
+      cpu: 750m
+      memory: 5Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+  env:
+    MATOMO_DATABASE_ADAPTER: "mysql"
+    MATOMO_DATABASE_TABLES_PREFIX: "matomo_"
+    PHP_MEMORY_LIMIT: "1G"
+    PHP_LOG_ERRORS: "On"
+    PHP_ERROR_LOG: "/dev/stderr"
+    PHP_DISPLAY_ERRORS: "On"
+    PHP_ERROR_REPORTING: "E_ALL"
+
+ingress:
+  enabled: true
+  host: matomo.dao.as
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+infisical:
+  enabled: true
+  environment: "prod"
+
+mariadb:
+  enabled: true
+  storageSize: 100Gi
+
+archiving:
+  enabled: true
+  schedule: "5 * * * *"
+  url: "https://matomo.dao.as"

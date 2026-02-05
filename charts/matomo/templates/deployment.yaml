@@ -1,0 +1,162 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    environment: {{ .Values.app.environment }}
+  {{- if and .Values.infisical.enabled .Values.infisical.autoReload }}
+  annotations:
+    secrets.infisical.com/auto-reload: "true"
+  {{- end }}
+spec:
+  replicas: {{ .Values.app.replicas }}
+  revisionHistoryLimit: {{ .Values.app.revisionHistoryLimit | default 10 }}
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: {{ .Values.app.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+        environment: {{ .Values.app.environment }}
+      annotations:
+        app.image/checksum: {{ printf "%s:%s" .Values.app.image .Values.app.tag | sha256sum }}
+    spec:
+      containers:
+      - name: {{ .Values.app.name }}
+        image: "{{ .Values.app.image }}:{{ .Values.app.tag }}"
+        imagePullPolicy: {{ .Values.app.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.app.port }}
+        env:
+        - name: ENVIRONMENT
+          value: {{ .Values.app.environment }}
+        {{- if .Values.mariadb.enabled }}
+        {{- if .Values.infisical.enabled }}
+        - name: MATOMO_DATABASE_HOST
+          value: "{{ .Values.app.name }}-mariadb"
+        - name: MATOMO_DATABASE_DBNAME
+          value: "$(MARIADB_DATABASE)"
+        - name: MATOMO_DATABASE_USERNAME
+          value: "$(MARIADB_USER)"
+        - name: MATOMO_DATABASE_PASSWORD
+          value: "$(MARIADB_PASSWORD)"
+        {{- end }}
+        {{- end }}
+        {{- if .Values.ingress.enabled }}
+        {{- if .Values.ingress.path }}
+        - name: CONTEXT_PATH
+          value: {{ .Values.ingress.path }}
+        {{- end }}
+        {{- end }}
+        {{- range $key, $value := .Values.app.env }}
+        - name: {{ $key }}
+          value: {{ $value | quote }}
+        {{- end }}
+        {{- if .Values.infisical.enabled }}
+        envFrom:
+        - secretRef:
+            name: {{ .Values.app.name }}
+        {{- end }}
+        resources:
+          limits:
+            cpu: {{ .Values.app.resources.limits.cpu }}
+            memory: {{ .Values.app.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.app.resources.requests.cpu }}
+            memory: {{ .Values.app.resources.requests.memory }}
+        livenessProbe:
+          httpGet:
+            path: {{ .Values.app.healthcheck.path }}
+            port: {{ .Values.app.port }}
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.app.healthcheck.liveness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.app.healthcheck.liveness.periodSeconds }}
+        readinessProbe:
+          httpGet:
+            path: {{ .Values.app.healthcheck.path }}
+            port: {{ .Values.app.port }}
+            scheme: HTTP
+          initialDelaySeconds: {{ .Values.app.healthcheck.readiness.initialDelaySeconds }}
+          periodSeconds: {{ .Values.app.healthcheck.readiness.periodSeconds }}
+        volumeMounts:
+        - name: matomo-config
+          mountPath: /var/www/html/config
+        #- name: matomo-plugins
+        #  mountPath: /var/www/html/plugins
+        - name: matomo-misc
+          mountPath: /var/www/html/misc
+        - name: matomo-tmp
+          mountPath: /var/www/html/tmp
+      volumes:
+      - name: matomo-config
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-config-pvc
+      #- name: matomo-plugins
+      #  persistentVolumeClaim:
+      #    claimName: {{ .Values.app.name }}-plugins-pvc
+      - name: matomo-misc
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-misc-pvc
+      - name: matomo-tmp
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-tmp-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-config-pvc
+  namespace: {{ .Values.app.namespace }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.storage.config.size | default "1Gi" }}
+  storageClassName: {{ .Values.storage.storageClassName | default "longhorn" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-plugins-pvc
+  namespace: {{ .Values.app.namespace }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.storage.plugins.size | default "5Gi" }}
+  storageClassName: {{ .Values.storage.storageClassName | default "longhorn" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-misc-pvc
+  namespace: {{ .Values.app.namespace }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.storage.misc.size | default "2Gi" }}
+  storageClassName: {{ .Values.storage.storageClassName | default "longhorn" }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.app.name }}-tmp-pvc
+  namespace: {{ .Values.app.namespace }}
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: {{ .Values.storage.tmp.size | default "2Gi" }}
+  storageClassName: {{ .Values.storage.storageClassName | default "longhorn" }}

@@ -1,0 +1,77 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Values.app.name }}-security-files
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    environment: {{ .Values.app.environment }}
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.app.name }}
+        job: security-files
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: security-setup
+        image: "{{ .Values.app.image }}:{{ .Values.app.tag }}"
+        command:
+        - sh
+        - -c
+        - |
+          echo "Checking console location..."
+          if [ -f /var/www/html/console ]; then
+            CONSOLE_PATH="/var/www/html/console"
+          elif [ -f /usr/src/matomo/console ]; then
+            CONSOLE_PATH="/usr/src/matomo/console"
+          else
+            echo "Error: Console file not found"
+            ls -la /var/www/html/ | head -20
+            ls -la /usr/src/matomo/ 2>/dev/null | head -20 || true
+            exit 1
+          fi
+          echo "Found console at: $CONSOLE_PATH"
+          echo "Creating security files..."
+          php "$CONSOLE_PATH" core:create-security-files || {
+            echo "Command failed, trying to create .htaccess files manually..."
+            cat > /var/www/html/tmp/.htaccess << 'EOF'
+          <IfModule mod_authz_core.c>
+            Require all denied
+          </IfModule>
+          <IfModule !mod_authz_core.c>
+            Order deny,allow
+            Deny from all
+          </IfModule>
+          EOF
+            cp /var/www/html/tmp/.htaccess /var/www/html/config/.htaccess 2>/dev/null || true
+            echo "Manual .htaccess files created"
+          }
+          echo "Security files created successfully"
+        volumeMounts:
+        - name: matomo-config
+          mountPath: /var/www/html/config
+        - name: matomo-plugins
+          mountPath: /var/www/html/plugins
+        - name: matomo-misc
+          mountPath: /var/www/html/misc
+        - name: matomo-tmp
+          mountPath: /var/www/html/tmp
+      volumes:
+      - name: matomo-config
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-config-pvc
+      - name: matomo-plugins
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-plugins-pvc
+      - name: matomo-misc
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-misc-pvc
+      - name: matomo-tmp
+        persistentVolumeClaim:
+          claimName: {{ .Values.app.name }}-tmp-pvc

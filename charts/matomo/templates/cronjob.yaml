@@ -1,0 +1,128 @@
+{{- if .Values.archiving.enabled }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.app.name }}-archive
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    component: archiving
+    environment: {{ .Values.app.environment }}
+spec:
+  schedule: {{ .Values.archiving.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: {{ .Values.archiving.successfulJobsHistoryLimit | default 3 }}
+  failedJobsHistoryLimit: {{ .Values.archiving.failedJobsHistoryLimit | default 3 }}
+  jobTemplate:
+    spec:
+      backoffLimit: {{ .Values.archiving.backoffLimit | default 2 }}
+      activeDeadlineSeconds: 1800
+      template:
+        metadata:
+          labels:
+            app: {{ .Values.app.name }}
+            component: archiving
+            environment: {{ .Values.app.environment }}
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: archive
+            image: "{{ .Values.app.image }}:{{ .Values.app.tag }}"
+            imagePullPolicy: {{ .Values.app.pullPolicy }}
+            command:
+            - /bin/bash
+            - -c
+            - |
+              set -e
+              echo "Starting Matomo archive process at $(date)"
+
+              # Matomo source files are in /usr/src/matomo in the Docker image
+              if [ -f /usr/src/matomo/console ]; then
+                echo "Using console from /usr/src/matomo/"
+                cd /usr/src/matomo
+
+                # Create symlink to config from mounted PVC
+                if [ -d /var/www/html/config ]; then
+                  echo "Linking config directory..."
+                  rm -rf ./config
+                  ln -s /var/www/html/config ./config
+                fi
+
+                # Create symlink to tmp from mounted PVC
+                if [ -d /var/www/html/tmp ]; then
+                  echo "Linking tmp directory..."
+                  rm -rf ./tmp
+                  ln -s /var/www/html/tmp ./tmp
+                fi
+
+                php console --matomo-domain={{ .Values.archiving.url }} core:archive \
+                  --force-all-websites \
+                  --force-periods=all \
+                  --force-date-last-n=365 \
+                  {{ if .Values.archiving.concurrent -}}
+                  --concurrent-requests-per-website={{ .Values.archiving.concurrent }} \
+                  {{ end -}}
+                  {{ if .Values.archiving.concurrentArchivers -}}
+                  --concurrent-archivers={{ .Values.archiving.concurrentArchivers }}
+                  {{ end -}}
+              else
+                echo "ERROR: console file not found in /usr/src/matomo/"
+                ls -la /usr/src/matomo/ 2>/dev/null || echo "/usr/src/matomo/ not found"
+                exit 1
+              fi
+
+              echo "Archive process completed at $(date)"
+            volumeMounts:
+            - name: matomo-config
+              mountPath: /var/www/html/config
+            #- name: matomo-plugins
+            #  mountPath: /var/www/html/plugins
+            - name: matomo-misc
+              mountPath: /var/www/html/misc
+            - name: matomo-tmp
+              mountPath: /var/www/html/tmp
+            env:
+            - name: ENVIRONMENT
+              value: {{ .Values.app.environment }}
+            {{- if .Values.mariadb.enabled }}
+            {{- if .Values.infisical.enabled }}
+            - name: MATOMO_DATABASE_HOST
+              value: "{{ .Values.app.name }}-mariadb"
+            - name: MATOMO_DATABASE_DBNAME
+              value: "$(MARIADB_DB)"
+            - name: MATOMO_DATABASE_USERNAME
+              value: "$(MARIADB_USER)"
+            - name: MATOMO_DATABASE_PASSWORD
+              value: "$(MARIADB_PASSWORD)"
+            {{- end }}
+            {{- end }}
+            {{- range $key, $value := .Values.app.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+            {{- if .Values.infisical.enabled }}
+            envFrom:
+            - secretRef:
+                name: {{ .Values.app.name }}
+            {{- end }}
+            resources:
+              limits:
+                cpu: {{ .Values.archiving.resources.limits.cpu | default "1000m" }}
+                memory: {{ .Values.archiving.resources.limits.memory | default "2Gi" }}
+              requests:
+                cpu: {{ .Values.archiving.resources.requests.cpu | default "500m" }}
+                memory: {{ .Values.archiving.resources.requests.memory | default "1Gi" }}
+          volumes:
+          - name: matomo-config
+            persistentVolumeClaim:
+              claimName: {{ .Values.app.name }}-config-pvc
+          #- name: matomo-plugins
+          #  persistentVolumeClaim:
+          #    claimName: {{ .Values.app.name }}-plugins-pvc
+          - name: matomo-misc
+            persistentVolumeClaim:
+              claimName: {{ .Values.app.name }}-misc-pvc
+          - name: matomo-tmp
+            persistentVolumeClaim:
+              claimName: {{ .Values.app.name }}-tmp-pvc
+{{- end }}
