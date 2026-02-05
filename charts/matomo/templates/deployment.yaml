@@ -116,7 +116,7 @@ metadata:
   namespace: {{ .Values.app.namespace }}
 spec:
   accessModes:
-  - ReadWriteMany
+  - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.storage.config.size | default "1Gi" }}
@@ -129,7 +129,7 @@ metadata:
   namespace: {{ .Values.app.namespace }}
 spec:
   accessModes:
-  - ReadWriteMany
+  - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.storage.plugins.size | default "5Gi" }}
@@ -142,7 +142,7 @@ metadata:
   namespace: {{ .Values.app.namespace }}
 spec:
   accessModes:
-  - ReadWriteMany
+  - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.storage.misc.size | default "2Gi" }}
@@ -155,7 +155,7 @@ metadata:
   namespace: {{ .Values.app.namespace }}
 spec:
   accessModes:
-  - ReadWriteMany
+  - ReadWriteOnce
   resources:
     requests:
       storage: {{ .Values.storage.tmp.size | default "2Gi" }}
