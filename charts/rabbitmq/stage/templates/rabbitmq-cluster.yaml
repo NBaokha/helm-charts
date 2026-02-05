@@ -77,9 +77,6 @@ spec:
             - name: definitions
               configMap:
                 name: rabbitmq-definitions
-
-
-  
   # High availability - spread across nodes
   affinity:
     podAntiAffinity:
