@@ -30,6 +30,10 @@ spec:
           value: "{{ .Values.mariadb.password }}"
         - name: MARIADB_AUTO_UPGRADE
           value: "1"
+        - name: MARIADB_ADMIN_USER
+          value: "nba_admin"
+        - name: MARIADB_ADMIN_PASSWORD
+          value: "admin_password"
         args:
         - --max-allowed-packet=64M
         volumeMounts:
