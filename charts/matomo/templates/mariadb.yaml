@@ -40,7 +40,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - "mariadb-admin ping -u root -p root"
+            - "mariadb-admin ping -u root -p$MARIADB_ROOT_PASSWORD"
           initialDelaySeconds: 30
           periodSeconds: 10
         readinessProbe:
@@ -48,7 +48,7 @@ spec:
             command:
             - /bin/sh
             - -c
-            - "mariadb-admin ping -u root -p root"
+            - "mariadb-admin ping -u root -p$MARIADB_ROOT_PASSWORD"
           initialDelaySeconds: 5
           periodSeconds: 5
       volumes:
