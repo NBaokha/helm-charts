@@ -19,9 +19,6 @@ spec:
         image: mariadb:11.8
         ports:
         - containerPort: 3306
-        envFrom:
-        - secretRef:
-            name: {{ .Values.app.name }}
         env:
         - name: MARIADB_AUTO_UPGRADE
           value: "1"
