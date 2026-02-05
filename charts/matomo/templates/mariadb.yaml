@@ -5,7 +5,7 @@ metadata:
   name: {{ .Values.app.name }}-mariadb
   namespace: {{ .Values.app.namespace }}
 spec:
-  replicas: 1
+  replicas: 1 
   selector:
     matchLabels:
       app: {{ .Values.app.name }}-mariadb
@@ -18,8 +18,16 @@ spec:
       - name: mariadb
         image: mariadb:11.8
         ports:
-        - containerPort: 3306
+        - containerPort: 3306  
         env:
+        - name: MARIADB_ROOT_PASSWORD
+          value: "{{ .Values.mariadb.rootPassword }}"
+        - name: MARIADB_DATABASE
+          value: "{{ .Values.mariadb.database }}"
+        - name: MARIADB_USER
+          value: "{{ .Values.mariadb.user }}"
+        - name: MARIADB_PASSWORD
+          value: "{{ .Values.mariadb.password }}"
         - name: MARIADB_AUTO_UPGRADE
           value: "1"
         args:
