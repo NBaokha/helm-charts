@@ -53,6 +53,10 @@ storage:
 mariadb:
   enabled: true
   storageSize: 5Gi
+  rootPassword: "root"
+  database: "matomo"
+  user: "matomo"
+  password: "matomo"
 
 archiving:
   enabled: true
