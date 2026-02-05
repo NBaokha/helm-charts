@@ -1,5 +1,5 @@
 app:
-  replicas: 2
+  replicas: 1
   environment: stage
   env:
     MATOMO_DATABASE_ADAPTER: "mysql"
