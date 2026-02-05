@@ -40,7 +40,7 @@ ingress:
   annotations: {}
 
 storage:
-  storageClassName: longhorn
+  storageClassName: local-path
   config:
     size: 1Gi
   plugins:

@@ -74,5 +74,5 @@ spec:
   resources:
     requests:
       storage: {{ .Values.mariadb.storageSize }}
-  storageClassName: longhorn
+  storageClassName: local-path
 {{- end }}
