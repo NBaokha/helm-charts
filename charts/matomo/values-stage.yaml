@@ -9,14 +9,11 @@ app:
     PHP_ERROR_LOG: "/dev/stderr"
     PHP_DISPLAY_ERRORS: "On"
     PHP_ERROR_REPORTING: "E_ALL"
- 
-ingress:
-  enabled: true
-  host: matomo.stage.saoad.dk
-  annotations:
-    cert-manager.io/cluster-issuer: letsencrypt
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+service:
+  type: NodePort
+  port: 80
+  nodePort: 30080  # Access on this port
 
 infisical:
   enabled: true
@@ -29,4 +26,4 @@ mariadb:
 archiving:
   enabled: true
   schedule: "5 * * * *"
-  url: "https://matomo.stage.saoad.dk"
+  url: "http://matomo:80"  # Use internal service name instead
