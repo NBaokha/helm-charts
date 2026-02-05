@@ -16,7 +16,7 @@ service:
   nodePort: 30080  # Access on this port
 
 infisical:
-  enabled: true
+  enabled: false
   environment: "staging"
 
 mariadb:
