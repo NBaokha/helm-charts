@@ -51,11 +51,11 @@ storage:
     size: 2Gi
 
 mariadb:
-  enabled: false
+  enabled: true
   storageSize: 5Gi
 
 archiving:
-  enabled: false
+  enabled: true
   schedule: "5 * * * *"
   url: ""
   concurrent: 4

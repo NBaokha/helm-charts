@@ -9,7 +9,7 @@ app:
     PHP_ERROR_LOG: "/dev/stderr"
     PHP_DISPLAY_ERRORS: "On"
     PHP_ERROR_REPORTING: "E_ALL"
-
+ 
 ingress:
   enabled: true
   host: matomo.stage.saoad.dk
