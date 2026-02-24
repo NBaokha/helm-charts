@@ -3,4 +3,4 @@ name: matomo
 description: Matomo - Open-source analytics platform
 type: application
 version: 1.0.0
-appVersion: "5.6.1"
+appVersion: "5.7.1"
