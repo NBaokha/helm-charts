@@ -373,8 +373,8 @@ route:
 
 resources: {}
 
-  infisicial:
-    enabled: false
+infisicial:
+  enabled: false
 
 smtp:
   existingSecret: ""
