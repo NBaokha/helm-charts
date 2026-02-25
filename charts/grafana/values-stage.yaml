@@ -373,8 +373,13 @@ route:
 
 resources: {}
 
-infisocial:
-  enabled: false
+  infisicial:
+    enabled: false
+
+smtp:
+  existingSecret: ""
+  userKey: ""
+  passwordKey: ""
 #  limits:
 #    cpu: 100m
 #    memory: 128Mi
