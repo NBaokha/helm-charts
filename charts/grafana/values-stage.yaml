@@ -373,9 +373,6 @@ route:
 
 resources: {}
 
-infisical:
-  enabled: false
-
 smtp:
   existingSecret: ""
   userKey: ""
