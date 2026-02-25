@@ -16,11 +16,6 @@ global:
   #   - pullSecret2
   imagePullSecrets: []
 
-infisical:
-  enabled: false
-  projectSlug: grafana-q-vr6
-  hostname: "https://infisical.prod.saoad.dk"
-  environment: staging
 
 rbac:
   create: true
@@ -317,7 +312,8 @@ ingress:
   path: /
   pathType: Prefix
 
-
+  hosts:
+    - grafana.stage.saoad.dk    # replace with your staging domain
   
 
   # - path: /*
@@ -333,6 +329,11 @@ ingress:
   #       port:
   #         name: use-annotation
 
+
+  tls:
+    - secretName: grafana-stage-tls
+      hosts:
+        - grafana.stage.saoad.dk
 
 # -- BETA: Configure the gateway routes for the chart here.
 # More routes can be added by adding a dictionary key like the 'main' route.
@@ -513,6 +514,7 @@ adminUser: admin
 # Use an existing secret for the admin user.
 admin:
   ## Name of the secret. Can be templated.
+  existingSecret: "grafana"
   userKey: "admin-user"
   passwordKey: "admin-password"
 
@@ -571,6 +573,7 @@ envValueFrom: {}
 
 ## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
 ## This can be useful for auth tokens, etc. Value is templated.
+envFromSecret: "grafana"
 
 ## Sensible environment variables that will be rendered as new secret object
 ## This can be useful for auth tokens, etc.
@@ -915,6 +918,7 @@ grafana.ini:
     name: Keycloak-OAuth
     allow_sign_up: true
     client_id: grafana
+    client_secret: ${GRAFANA_CLIENT_SECRET}
     scopes: openid email profile offline_access grafana_roles
     email_attribute_path: email
     login_attribute_path: username
@@ -924,12 +928,6 @@ grafana.ini:
     api_url: https://keycloak.stage.saoad.dk/realms/master/protocol/openid-connect/userinfo
     role_attribute_path: (contains(roles[*], 'admin')) && 'Admin' || (contains(roles[*], 'editor')) && 'Editor' || (contains(roles[*], 'viewer')) && 'Viewer'
     role_attribute_strict: true
-  smtp:
-      enabled: true
-      host: ${GRAFANA_SMTP_HOST}
-      from_address: ${GRAFANA_SMTP_FROM_ADDRESS}
-      from_name: Grafana Alerts
-      skip_verify: true
 
 ## grafana Authentication can be enabled with the following values on grafana.ini
  # server:
@@ -989,12 +987,6 @@ shareProcessNamespace: false
 ## Grafana's SMTP configuration
 ## NOTE: To enable, grafana.ini must be configured with smtp.enabled
 ## ref: http://docs.grafana.org/installation/configuration/#smtp
-smtp:
-  # `existingSecret` is a reference to an existing secret containing the smtp configuration
-  # for Grafana.
-  existingSecret: ""
-  userKey: ""
-  passwordKey: ""
 
 ## Sidecars that collect the configmaps with specified label and stores the included files them into the respective folders
 ## Requires at least Grafana 5 to work and can't be used together with parameters dashboardProviders, datasources and dashboards
