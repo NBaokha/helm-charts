@@ -317,8 +317,7 @@ ingress:
   path: /
   pathType: Prefix
 
-  hosts:
-    - grafana.stage.saoad.dk    # replace with your staging domain
+
   
 
   # - path: /*
@@ -334,11 +333,6 @@ ingress:
   #       port:
   #         name: use-annotation
 
-
-  tls:
-    - secretName: grafana-stage-tls
-      hosts:
-        - grafana.stage.saoad.dk
 
 # -- BETA: Configure the gateway routes for the chart here.
 # More routes can be added by adding a dictionary key like the 'main' route.
@@ -519,7 +513,6 @@ adminUser: admin
 # Use an existing secret for the admin user.
 admin:
   ## Name of the secret. Can be templated.
-  existingSecret: "grafana"
   userKey: "admin-user"
   passwordKey: "admin-password"
 
@@ -578,7 +571,6 @@ envValueFrom: {}
 
 ## The name of a secret in the same kubernetes namespace which contain values to be added to the environment
 ## This can be useful for auth tokens, etc. Value is templated.
-envFromSecret: "grafana"
 
 ## Sensible environment variables that will be rendered as new secret object
 ## This can be useful for auth tokens, etc.
@@ -923,7 +915,6 @@ grafana.ini:
     name: Keycloak-OAuth
     allow_sign_up: true
     client_id: grafana
-    client_secret: ${GRAFANA_CLIENT_SECRET}
     scopes: openid email profile offline_access grafana_roles
     email_attribute_path: email
     login_attribute_path: username
