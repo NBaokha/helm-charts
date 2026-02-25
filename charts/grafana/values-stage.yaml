@@ -16,6 +16,12 @@ global:
   #   - pullSecret2
   imagePullSecrets: []
 
+infisical:
+  enabled: false
+  projectSlug: grafana-q-vr6
+  hostname: "https://infisical.prod.saoad.dk"
+  environment: staging
+
 rbac:
   create: true
   ## Use an existing ClusterRole/Role (depending on rbac.namespaced false/true)
