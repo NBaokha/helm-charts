@@ -679,7 +679,6 @@ lifecycleHooks: {}
 plugins:
     - yesoreyeram-infinity-datasource
     - alexanderzobnin-zabbix-app
-    - grafana-github-datasource
   # - digrich-bubblechart-panel
   # - grafana-clock-panel
   ## You can also use other plugin download URL, as long as they are valid zip files,
@@ -933,6 +932,9 @@ grafana.ini:
     api_url: https://keycloak.stage.saoad.dk/realms/master/protocol/openid-connect/userinfo
     role_attribute_path: (contains(roles[*], 'admin')) && 'Admin' || (contains(roles[*], 'editor')) && 'Editor' || (contains(roles[*], 'viewer')) && 'Viewer'
     role_attribute_strict: true
+  feature_toggles:
+    provisioning: true
+    kubernetesDashboards: true
 
 ## grafana Authentication can be enabled with the following values on grafana.ini
  # server:
