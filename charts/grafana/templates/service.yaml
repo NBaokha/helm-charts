@@ -51,9 +51,6 @@ spec:
   {{- with .Values.service.sessionAffinity }}
   sessionAffinity: {{ . }}
   {{- end }}
-  {{- with .Values.service.trafficDistribution }}
-  trafficDistribution: {{ . }}
-  {{- end }}
   ports:
     - name: {{ .Values.service.portName }}
       port: {{ .Values.service.port }}

@@ -1,0 +1,25 @@
+{{- if .Values.infisical.enabled }}
+apiVersion: secrets.infisical.com/v1alpha1
+kind: InfisicalSecret
+metadata:
+  name: {{ .Values.app.name }}
+  namespace: {{ .Values.app.namespace }}
+  labels:
+    app: {{ .Values.app.name }}
+    environment: {{ .Values.app.environment }}
+spec:
+  hostAPI: {{ .Values.infisical.hostname }}
+  resyncInterval: 60
+  authentication:
+    universalAuth:
+      secretsScope:
+        projectSlug: {{ .Values.infisical.projectSlug }}
+        secretsPath: "/"
+        envSlug: {{ .Values.infisical.environment }}
+      credentialsRef:
+        secretName: infisical-secrets
+        secretNamespace: argocd
+  managedSecretReference:
+    secretName: {{ .Values.app.name }}
+    secretNamespace: {{ .Values.app.namespace }}
+{{- end }}
