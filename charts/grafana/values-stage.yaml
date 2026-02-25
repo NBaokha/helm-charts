@@ -372,6 +372,9 @@ route:
     additionalRules: []
 
 resources: {}
+
+infisocial:
+  enabled: false
 #  limits:
 #    cpu: 100m
 #    memory: 128Mi
