@@ -811,12 +811,12 @@ scrapeConfigs:
       - targets:
           - localhost:9090
   aikido:
-  enabled: true
-  job_name: "aikido"
-  static_configs:
-    - targets:
-        - host.docker.internal:8000
-  scrape_interval: 60s
+    enabled: true
+    job_name: "aikido"
+    static_configs:
+      - targets:
+          - host.docker.internal:8000
+    scrape_interval: 60s
   kubernetes-api-servers:
     enabled: true
     job_name: ""
