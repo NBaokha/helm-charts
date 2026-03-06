@@ -679,6 +679,7 @@ lifecycleHooks: {}
 plugins:
     - yesoreyeram-infinity-datasource
     - alexanderzobnin-zabbix-app
+    - grafana-github-datasource
   # - digrich-bubblechart-panel
   # - grafana-clock-panel
   ## You can also use other plugin download URL, as long as they are valid zip files,
@@ -1318,45 +1319,10 @@ sidecar:
     # This e.g. allows stricter RBAC rules which are limited to the resources meant for the sidecars.
     # resourceName: "secret/plugins-0,configmap/plugins-1"
     resourceName: ""
-    #
-    # watchServerTimeout: request to the server, asking it to cleanly close the connection after that.
-    # defaults to 60sec; much higher values like 3600 seconds (1h) are feasible for non-Azure K8S
-    # watchServerTimeout: 3600
-    #
-    # watchClientTimeout: is a client-side timeout, configuring your local socket.
-    # If you have a network outage dropping all packets with no RST/FIN,
-    # this is how long your client waits before realizing & dropping the connection.
-    # defaults to 66sec (sic!)
-    # watchClientTimeout: 60
-    #
-    # maxTotalRetries: Total number of retries to allow for any http request.
-    # Takes precedence over other counts. Applies to all requests to reloadURL and k8s api requests.
-    # Set to 0 to fail on the first retry.
-    # maxTotalRetries: 5
-    #
-    # maxConnectRetries: How many connection-related errors to retry on for any http request.
-    # These are errors raised before the request is sent to the remote server, which we assume has not triggered the server to process the request.
-    # Applies to all requests to reloadURL and k8s api requests.
-    # Set to 0 to fail on the first retry of this type.
-    # maxConnectRetries: 10
-    #
-    # maxReadRetries: How many times to retry on read errors for any http request
-    # These errors are raised after the request was sent to the server, so the request may have side-effects.
-    # Applies to all requests to reloadURL and k8s api requests.
-    # Set to 0 to fail on the first retry of this type.
-    # maxReadRetries: 5
-    #
-    # Endpoint to send request to reload plugins
     reloadURL: "http://localhost:3000/api/admin/provisioning/plugins/reload"
-    # Absolute path to a script to execute after a configmap got reloaded.
-    # It runs before calls to REQ_URI. If the file is not executable it will be passed to sh.
-    # Otherwise, it's executed as is. Shebangs known to work are #!/bin/sh and #!/usr/bin/env python
     script: null
     skipReload: false
-    # Deploy the datasource sidecar as an initContainer in addition to a container.
-    # This is needed if skipReload is true, to load any plugins defined at startup time.
     initPlugins: false
-    # Additional plugins sidecar volume mounts
     extraMounts: []
     # Sets the size limit of the plugin sidecar emptyDir volume
     sizeLimit: ""

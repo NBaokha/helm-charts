@@ -51,7 +51,7 @@ rbac:
       resources: ["backups", "schedules"]
       verbs: ["get", "list", "watch"]
 serviceAccount:
-  create: true
+  create: false
   name: grafana-monitoring
   ## ServiceAccount labels.
   labels: {}
@@ -69,7 +69,7 @@ replicas: 1
 headlessService: false
 
 ## Should the service account be auto mounted on the pod
-automountServiceAccountToken: true
+automountServiceAccountToken: false
 
 ## Create HorizontalPodAutoscaler object for deployment type
 #
@@ -689,6 +689,7 @@ lifecycleHooks: {}
 ##
 plugins:
     - yesoreyeram-infinity-datasource
+    - grafana-github-datasource
   # - digrich-bubblechart-panel
   # - grafana-clock-panel
   ## You can also use other plugin download URL, as long as they are valid zip files,
