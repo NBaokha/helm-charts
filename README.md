@@ -1,6 +1,7 @@
 # helm-charts
 
-Helm charts deployed to the saoad.dk clusters, synced by ArgoCD.
+Helm charts for a local test cluster, deployable directly with Helm or synced by
+Argo CD. No ingress or SSO is configured — reach services by port-forwarding.
 
 ## Layout
 

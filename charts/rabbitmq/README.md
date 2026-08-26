@@ -72,11 +72,9 @@ ArgoCD
 - Metrics exposed on port 15692 via dedicated Service
 - Grafana dashboards available
 
-### 5. Ingress
-- Management UI accessible via HTTPS
-- Stage: https://rabbitmq.stage.saoad.dk
-- Automatic SSL certificates via cert-manager
-- Note: no Ingress is rendered by this chart; the Service is ClusterIP only.
+### 5. Access
+- No Ingress is rendered by this chart; the Service is ClusterIP only
+- Reach the Management UI by port-forwarding (see below)
 
 ## Environment
 
@@ -143,11 +141,7 @@ kubectl exec -n rabbitmq rabbitmq-server-0 -- rabbitmqctl cluster_status
 
 ### Access Management UI
 
-**Via Ingress (production method):**
-- Stage: https://rabbitmq.stage.saoad.dk
-- Production: https://rabbitmq.prod.saoad.dk
-
-**Via Port Forward (for testing/debugging):**
+**Via Port Forward:**
 ```bash
 kubectl port-forward -n rabbitmq svc/rabbitmq 15672:15672
 ```
