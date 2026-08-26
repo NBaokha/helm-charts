@@ -16,6 +16,26 @@ argo-cd:
       # than redirected — a TLS handshake cannot be answered with a redirect.
       server.insecure: false
 
+  # Metrics Services are off by default; the annotation lets prometheus find them.
+  controller:
+    metrics:
+      enabled: true
+      service:
+        annotations:
+          prometheus.io/scrape: "true"
+  server:
+    metrics:
+      enabled: true
+      service:
+        annotations:
+          prometheus.io/scrape: "true"
+  repoServer:
+    metrics:
+      enabled: true
+      service:
+        annotations:
+          prometheus.io/scrape: "true"
+
   # Local installs use the built-in admin account.
   dex:
     enabled: false
@@ -26,3 +46,8 @@ argo-cd:
   # Usual way to register the other charts here. Disable if the node is tight.
   applicationSet:
     enabled: true
+    metrics:
+      enabled: true
+      service:
+        annotations:
+          prometheus.io/scrape: "true"

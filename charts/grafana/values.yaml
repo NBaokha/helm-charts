@@ -16,6 +16,12 @@ grafana:
   persistence:
     enabled: true
 
+  # The init container runs `chown -R 472:472` on the data volume, which fails
+  # on Docker Desktop / WSL2 hostpath volumes and crashloops the pod. The
+  # provisioner already grants the container write access.
+  initChownData:
+    enabled: false
+
   # Renders a grafana-test Pod and ConfigMap we never run.
   testFramework:
     enabled: false

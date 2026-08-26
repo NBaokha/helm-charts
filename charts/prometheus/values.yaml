@@ -16,13 +16,3 @@ prometheus:
         - targets:
             # Runs on the host, outside the cluster.
             - host.docker.internal:8000
-
-  # Appended verbatim to prometheus.yml. Targets report down until charts/argocd
-  # is installed.
-  extraScrapeConfigs: |
-    - job_name: argocd
-      static_configs:
-        - targets:
-          - argocd-metrics.argocd.svc.cluster.local:8082
-          - argocd-server-metrics.argocd.svc.cluster.local:8083
-          - argocd-repo-server.argocd.svc.cluster.local:8084
