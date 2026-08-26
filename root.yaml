@@ -1,4 +1,4 @@
-# App-of-apps. Bootstrap once: kubectl apply -f apps/root.yaml
+# App-of-apps, outside apps/ so it does not manage itself. Apply once: kubectl apply -f root.yaml
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
