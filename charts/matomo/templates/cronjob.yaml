@@ -1,3 +1,9 @@
+{{- /*
+Scheduled report archiving; without it, reports render empty.
+
+The image ships its source in /usr/src/matomo while the PVCs mount at
+/var/www/html — hence the symlinks before invoking the console.
+*/}}
 {{- if .Values.archiving.enabled }}
 apiVersion: batch/v1
 kind: CronJob
@@ -85,25 +91,18 @@ spec:
             - name: ENVIRONMENT
               value: {{ .Values.app.environment }}
             {{- if .Values.mariadb.enabled }}
-            {{- if .Values.infisical.enabled }}
             - name: MATOMO_DATABASE_HOST
               value: "{{ .Values.app.name }}-mariadb"
             - name: MATOMO_DATABASE_DBNAME
-              value: "$(MARIADB_DB)"
+              value: {{ .Values.mariadb.database | quote }}
             - name: MATOMO_DATABASE_USERNAME
-              value: "$(MARIADB_USER)"
+              value: {{ .Values.mariadb.user | quote }}
             - name: MATOMO_DATABASE_PASSWORD
-              value: "$(MARIADB_PASSWORD)"
-            {{- end }}
+              value: {{ .Values.mariadb.password | quote }}
             {{- end }}
             {{- range $key, $value := .Values.app.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
-            {{- end }}
-            {{- if .Values.infisical.enabled }}
-            envFrom:
-            - secretRef:
-                name: {{ .Values.app.name }}
             {{- end }}
             resources:
               limits:

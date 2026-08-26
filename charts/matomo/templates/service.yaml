@@ -1,3 +1,7 @@
+{{- /*
+Note: `service.nodePort` from values is NOT rendered here, so a NodePort service
+gets a random port. Add a `nodePort:` field below if a fixed one is needed.
+*/}}
 apiVersion: v1
 kind: Service
 metadata:

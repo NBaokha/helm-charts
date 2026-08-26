@@ -14,51 +14,35 @@ charts/rabbitmq/
 ├── README.md (Main documentation)
 ├── DEPLOYMENT.md (This file)
 ├── DEVELOPER_GUIDE.md (For application developers)
-├── stage/
-│   ├── rabbitmq-cluster.yaml (1 replica, 5Gi, 512Mi-1Gi)
-│   ├── infisical-secret.yaml
-│   ├── ingress.yaml
-│   └── monitoring-annotations.yaml
-└── production/
-    ├── rabbitmq-cluster.yaml (3 replicas HA, 20Gi, 2-4Gi, PDB)
-    ├── infisical-secret.yaml
-    ├── ingress.yaml
-    └── monitoring-annotations.yaml 
+├── Chart.yaml
+├── definitions.yaml (users, vhosts, exchanges, queues, bindings)
+└── templates/
+    ├── rabbitmq-cluster.yaml (1 replica, 5Gi, RabbitmqCluster + PDB)
+    ├── config-map.yaml (definitions.yaml rendered to JSON)
+    ├── monitoring-annotations.yaml (Prometheus scrape Service)
+    └── reload-config.yaml (PostSync definitions reload)
 ```
+
+The separate `production/` manifests were removed when this became a single
+chart; recover them from git history if needed.
 
 ## Deployment Steps
 
-### 1. Create Secrets in Infisical
+### 1. Credentials
 
-**IMPORTANT:** Environment name in Infisical is `staging` (not `stage`)
+Nothing to provision. Users, vhosts and permissions are static and live in
+`definitions.yaml`, which the broker loads at startup:
 
-**Stage Environment**:
-- Infisical URL: `https://infisical.prod.saoad.dk`
-- Project: `rabbitmq`
-- Path: `/`
-- Environment: `staging` ⚠️
-- Secrets:
-  ```
-  RABBITMQ_ADMIN_USERNAME = admin
-  RABBITMQ_ADMIN_PASSWORD = <generate strong password>
-  ```
-
-**Production Environment**:
-- Infisical URL: `https://infisical.prod.saoad.dk`
-- Project: `rabbitmq`
-- Path: `/`
-- Environment: `production`
-- Secrets:
-  ```
-  RABBITMQ_ADMIN_USERNAME = admin
-  RABBITMQ_ADMIN_PASSWORD = <generate strong password>
-  ```
-
-Generate password:
-```bash
-openssl rand -base64 32
+```yaml
+users:
+  - name: guest
+    password: guest
+    tags: [administrator]
 ```
-or use Infisical's password generator.
+
+These are throwaway values for a local/test cluster, not secrets. To change
+them, edit `definitions.yaml` and re-sync — the PostSync job re-applies the
+definitions to a running broker.
 ### 2. Monitor Deployment
 
 **Operator Installation:**
@@ -104,20 +88,15 @@ kubectl get pods -n rabbitmq
 kubectl get svc -n rabbitmq
 ```
 
-**Check Secrets:**
+**Check Definitions:**
 ```bash
-kubectl get secret -n rabbitmq rabbitmq-admin-credentials
-kubectl get infisicalsecret -n rabbitmq
-kubectl describe infisicalsecret rabbitmq-admin-credentials -n rabbitmq
+kubectl get configmap -n rabbitmq rabbitmq-definitions -o yaml
+kubectl logs -n rabbitmq job/rabbitmq-reload-definitions
 ```
 
 **Test Connection:**
 ```bash
-# Via Ingress (production method)
-# Stage: https://rabbitmq.stage.saoad.dk
-# Production: https://rabbitmq.prod.saoad.dk
-
-# Or port-forward Management UI (for testing)
+# The chart renders no Ingress, so port-forward the Management UI
 kubectl port-forward -n rabbitmq svc/rabbitmq 15672:15672
 
 # Open browser: http://localhost:15672
@@ -137,25 +116,20 @@ curl http://localhost:15692/metrics
 
 ## Configuration
 
-### Stage Environment
+The chart ships a single configuration, matching what the templates actually
+declare:
+
 - **Namespace**: `rabbitmq`
 - **Replicas**: 1
-- **CPU**: 250m-500m
-- **Memory**: 512Mi-1Gi
-- **Storage**: 5Gi (Longhorn)
-- **Plugins**: Essential plugins enabled by operator (management, prometheus, peer_discovery_k8s) + shovel, shovel_management
-- **Ingress**: https://rabbitmq.stage.saoad.dk
-
-### Production Environment (when deployed)
-- **Namespace**: `rabbitmq`
-- **Replicas**: 3 (HA)
 - **CPU**: 1-2 cores
 - **Memory**: 2-4Gi
-- **Storage**: 20Gi per node (Longhorn)
-- **Plugins**: Essential plugins + shovel, shovel_management, federation, federation_management
-- **HA**: Pod anti-affinity (required), PDB (min 2 available)
-- **Security**: NetworkPolicy
-- **Ingress**: https://rabbitmq.prod.saoad.dk
+- **Storage**: 5Gi on storage class `testing`
+- **Plugins**: Essential plugins enabled by operator (management, prometheus, peer_discovery_k8s) + shovel, shovel_management, federation, federation_management
+- **HA**: Pod anti-affinity (required), PDB (minAvailable 1)
+- **Ingress**: none rendered by this chart; the Service is ClusterIP only
+
+The production variant (3 replicas, 20Gi, NetworkPolicy, Ingress) was removed
+when this became a single chart.
 
 ## Key Features
 
@@ -175,48 +149,31 @@ curl http://localhost:15692/metrics
 - AMQP on port 5672 via `rabbitmq` service
 
 ### Security
-- Infisical secret management
-- NetworkPolicy (production)
 - Non-root containers (official RabbitMQ image)
 - Pod security contexts
 
-### High Availability (Production)
-- 3 replicas
-- Pod anti-affinity (spread across nodes)
-- PodDisruptionBudget (min 2 available)
-- Automatic partition healing
+### High Availability
+The manifests declare pod anti-affinity and a PodDisruptionBudget, but with
+`replicas: 1` neither provides real availability — and `minAvailable: 1` against
+a single replica will block a node drain. Scale up before relying on these.
 
 ## Important Notes
 
 1. **Operator Namespace**: The operator is installed in `rabbitmq-system` namespace from upstream GitHub repo (rabbitmq/cluster-operator)
 2. **Operator Version**: Pinned to `v2.16.1` (tagged release, not main branch)
 3. **Cluster Namespace**: RabbitMQ clusters are deployed in `rabbitmq` namespace
-4. **Secret Names**: `rabbitmq-admin-credentials` for admin credentials (synced from Infisical)
-5. **Infisical Configuration**: 
-   - URL: `https://infisical.prod.saoad.dk` (internal, not eu.infisical.com)
-   - Stage: Project `rabbitmq`, Path `/`, Environment `staging` ⚠️ (not "stage")
-   - Production: Project `rabbitmq`, Path `/`, Environment `production`
-   - Keys: `RABBITMQ_ADMIN_USERNAME`, `RABBITMQ_ADMIN_PASSWORD`
-6. **Image**: Official `rabbitmq:4.1.3-management` (not Bitnami)
-7. **License**: MPL 2.0 (Mozilla Public License)
-8. **Ingress**: Management UI accessible via HTTPS with automatic SSL certificates
-9. **Application Access**: Internal URL `rabbitmq.rabbitmq.svc.cluster.local:5672` (AMQP)
+4. **Credentials**: Static, in `definitions.yaml` (`guest`/`guest`). No external
+   secret manager — suitable for local/test clusters only.
+5. **Image**: Official `rabbitmq:4.1.3-management` (not Bitnami)
+6. **License**: MPL 2.0 (Mozilla Public License)
+7. **Ingress**: None rendered by this chart; port-forward the Management UI
+8. **Application Access**: Internal URL `rabbitmq.rabbitmq.svc.cluster.local:5672` (AMQP)
 
 ## Next Steps
 
-### After Stage Deployment
 1. Test AMQP connection from application
 2. Verify monitoring in Prometheus/Grafana
-3. Test secret rotation from Infisical
-4. Document any custom configuration needed
-
-### Production Deployment
-1. Update ApplicationSet to include production cluster
-2. Create secrets in Infisical (`/rabbitmq/production`)
-3. Deploy via ArgoCD
-4. Verify 3-node cluster formation
-5. Test failover scenarios
-6. Configure application connection strings
+3. Document any custom configuration needed
 
 ## Documentation
 
@@ -241,18 +198,17 @@ kubectl logs -n rabbitmq rabbitmq-server-0
 kubectl exec -n rabbitmq rabbitmq-server-0 -- rabbitmq-diagnostics status
 ```
 
-### Secret Issues
+### Definitions Issues
 ```bash
-kubectl get infisicalsecret -n rabbitmq rabbitmq-admin-credentials -o yaml
-kubectl describe infisicalsecret -n rabbitmq rabbitmq-admin-credentials
-kubectl logs -n infisical-operator-system -l app.kubernetes.io/name=infisical-operator
+kubectl get configmap -n rabbitmq rabbitmq-definitions -o yaml
+kubectl logs -n rabbitmq job/rabbitmq-reload-definitions
 ```
 
-**Common Infisical issues:**
-- Wrong environment: Use `staging` not `stage`
-- Wrong URL: Use `https://infisical.prod.saoad.dk` not `eu.infisical.com`
-- Project doesn't exist or machine identity lacks access
-- Invalid credentials in `infisical-secrets` secret in `argocd` namespace
+**Common issues:**
+- `management.load_definitions` only applies at startup; the PostSync reload job
+  handles a running broker, or restart the pod
+- Malformed `definitions.yaml` leaves the broker up but the topology missing
+- Login failures usually mean `definitions.yaml` was edited without a reload
 
 ## Support
 

@@ -1,59 +1,15 @@
 apiVersion: v2
 name: prometheus
-# renovate: github=prometheus/prometheus
-appVersion: v3.9.1
-version: 28.9.0
-kubeVersion: ">=1.19.0-0"
-description: Prometheus is a monitoring system and time series database.
-home: https://prometheus.io/
-icon: https://raw.githubusercontent.com/prometheus/prometheus.github.io/master/assets/prometheus_logo-cb55bb5c346.png
-sources:
-  - https://github.com/prometheus/alertmanager
-  - https://github.com/prometheus/prometheus
-  - https://github.com/prometheus/pushgateway
-  - https://github.com/prometheus/node_exporter
-  - https://github.com/kubernetes/kube-state-metrics
-maintainers:
-  - name: gianrubio
-    email: gianrubio@gmail.com
-    url: https://github.com/gianrubio
-  - name: zanhsieh
-    email: zanhsieh@gmail.com
-    url: https://github.com/zanhsieh
-  - name: Xtigyro
-    email: miroslav.hadzhiev@gmail.com
-    url: https://github.com/Xtigyro
-  - name: naseemkullah
-    email: naseem@transit.app
-    url: https://github.com/naseemkullah
-  - name: zeritti
-    email: rootsandtrees@posteo.de
-    url: https://github.com/zeritti
+description: Prometheus monitoring stack, wrapping the upstream community chart.
 type: application
+
+# Version of this wrapper, not of Prometheus.
+version: 1.0.0
+appVersion: v3.9.1
+
+# Upstream is used as-is; all customisation lives in values.yaml under
+# the `prometheus:` key. See the repo README to upgrade.
 dependencies:
-  - name: alertmanager
-    version: "1.33.*"
+  - name: prometheus
+    version: 28.9.0
     repository: https://prometheus-community.github.io/helm-charts
-    condition: alertmanager.enabled
-  - name: kube-state-metrics
-    version: "7.1.*"
-    repository: https://prometheus-community.github.io/helm-charts
-    condition: kube-state-metrics.enabled
-  - name: prometheus-node-exporter
-    version: "4.51.*"
-    repository: https://prometheus-community.github.io/helm-charts
-    condition: prometheus-node-exporter.enabled
-  - name: prometheus-pushgateway
-    version: "3.6.*"
-    repository: https://prometheus-community.github.io/helm-charts
-    condition: prometheus-pushgateway.enabled
-keywords:
-  - monitoring
-  - prometheus
-annotations:
-  "artifacthub.io/license": Apache-2.0
-  "artifacthub.io/links": |
-    - name: Chart Source
-      url: https://github.com/prometheus-community/helm-charts
-    - name: Upstream Project
-      url: https://github.com/prometheus/prometheus

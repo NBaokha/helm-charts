@@ -1,0 +1,19 @@
+apiVersion: v2
+name: argocd
+description: Argo CD, wrapping the upstream argo-helm chart.
+type: application
+
+# Version of this wrapper, not of Argo CD.
+version: 1.0.0
+appVersion: v3.5.1
+
+# Upstream is used as-is; all customisation lives in values.yaml under
+# the `argo-cd:` key. See README.md to install and upgrade.
+#
+# Do not point an Argo CD Application at this chart on a fresh cluster — it
+# cannot sync itself into existence, and a bad sync takes out the controller
+# that would fix it.
+dependencies:
+  - name: argo-cd
+    version: 10.4.0
+    repository: https://argoproj.github.io/argo-helm

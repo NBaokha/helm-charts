@@ -1,0 +1,5 @@
+# Subchart tarballs fetched by `helm dependency update`.
+#
+# Chart.lock pins the exact resolved versions and IS committed; both Helm and
+# ArgoCD rebuild these from it via `helm dependency build`.
+charts/*/charts/*.tgz

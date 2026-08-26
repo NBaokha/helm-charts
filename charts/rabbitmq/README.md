@@ -38,17 +38,14 @@ We chose the RabbitMQ Cluster Operator over Bitnami Helm charts for the followin
 ```
 ArgoCD
 ├── apps/rabbitmq-operator/ (Operator installation)
-└── apps/rabbitmq/ (RabbitmqCluster CRDs)
-    ├── stage/
-    │   ├── rabbitmq-cluster.yaml (1 replica)
-    │   ├── infisical-secret.yaml
-    │   ├── ingress.yaml
-    │   └── monitoring-annotations.yaml
-    └── production/
-        ├── rabbitmq-cluster.yaml (3 replicas, HA)
-        ├── infisical-secret.yaml
-        ├── ingress.yaml
-        └── monitoring-annotations.yaml
+└── apps/rabbitmq/ (this chart)
+    ├── Chart.yaml
+    ├── definitions.yaml (users, vhosts, exchanges, queues, bindings)
+    └── templates/
+        ├── rabbitmq-cluster.yaml (RabbitmqCluster + PodDisruptionBudget)
+        ├── config-map.yaml (definitions.yaml rendered to JSON)
+        ├── monitoring-annotations.yaml (Prometheus scrape Service)
+        └── reload-config.yaml (PostSync definitions reload)
 ```
 
 ## Components
@@ -63,12 +60,11 @@ ArgoCD
 - Declarative configuration
 - Automatically creates all required Kubernetes resources
 
-### 3. Infisical Integration
-- Admin credentials stored in Infisical
-- Synced to Kubernetes via InfisicalSecret CRD
-- Project: `rabbitmq`, Environments: `staging` (stage cluster) and `production`
-- Secret name in K8s: `rabbitmq-admin-credentials`
-- Keys: `RABBITMQ_ADMIN_USERNAME`, `RABBITMQ_ADMIN_PASSWORD`
+### 3. Credentials
+- Static, defined in `definitions.yaml` (user `guest`, password `guest`)
+- Loaded by the broker at startup via `management.load_definitions`
+- Intended for local and test clusters only — these are not secrets
+- No external secret manager is involved
 
 ### 4. Monitoring
 - Prometheus metrics via annotation-based service discovery
@@ -79,25 +75,26 @@ ArgoCD
 ### 5. Ingress
 - Management UI accessible via HTTPS
 - Stage: https://rabbitmq.stage.saoad.dk
-- Production: https://rabbitmq.prod.saoad.dk
 - Automatic SSL certificates via cert-manager
+- Note: no Ingress is rendered by this chart; the Service is ClusterIP only.
 
-## Environments
+## Environment
 
-### Stage
-- **Location**: `charts/rabbitmq/stage/`
+The chart carries a single configuration, targeting stage:
+
+- **Location**: `charts/rabbitmq/`
 - **Replicas**: 1 (single node)
-- **Resources**: 250m-500m CPU, 512Mi-1Gi RAM
-- **Storage**: 5Gi
+- **Resources**: 1-2 CPU, 2-4Gi RAM
+- **Storage**: 5Gi on storage class `testing`
 - **Purpose**: Development and testing
 
-### Production
-- **Location**: `charts/rabbitmq/production/`
-- **Replicas**: 3 (HA cluster)
-- **Resources**: 1-2 CPU, 2-4Gi RAM per node
-- **Storage**: 20Gi per node
-- **HA**: Pod anti-affinity, PodDisruptionBudget (min 2 available)
-- **Purpose**: Production workloads
+The separate `production/` manifests (3 replicas, HA, 20Gi, plus an externally
+managed secret and Ingress) were removed when this became a single chart.
+Recover them from git history if needed:
+
+```bash
+git log --diff-filter=D -- 'charts/rabbitmq/prod/*'
+```
 
 ## Deployment
 
@@ -106,47 +103,23 @@ ArgoCD
 1. **Install Cluster Operator**
    The operator is installed automatically via ArgoCD from `apps/rabbitmq-operator/`.
 
-2. **Create Secrets in Infisical**
-   
-   For **stage** environment:
-   - Project: `rabbitmq`
-   - Path: `/`
-   - Environment: `staging` (note: staging, not stage)
-   - Secrets:
-     ```
-     RABBITMQ_ADMIN_USERNAME = admin
-     RABBITMQ_ADMIN_PASSWORD = <generate with: openssl rand -base64 32>
-     ```
-   
-   For **production** environment:
-   - Project: `rabbitmq`
-   - Path: `/`
-   - Environment: `production`
-   - Secrets:
-     ```
-     RABBITMQ_ADMIN_USERNAME = admin
-     RABBITMQ_ADMIN_PASSWORD = <generate with: openssl rand -base64 32>
-     ```
+2. **Credentials**
+   None to provision. The broker's users come from `definitions.yaml` and are
+   static. Edit that file to change them.
 
-3. **Infisical API**
-   - Internal Infisical: `https://infisical.prod.saoad.dk`
-   - NOT `https://eu.infisical.com`
+### Deploy
 
-### Deploy Stage
+```bash
+helm template rabbitmq charts/rabbitmq   # render locally
+helm install  rabbitmq charts/rabbitmq -n rabbitmq --create-namespace
+```
 
-ArgoCD will automatically:
+Under ArgoCD this happens automatically:
 1. Install the operator in `rabbitmq-system` namespace (from upstream GitHub repo)
 2. Create `rabbitmq` namespace
-3. Sync secrets from Infisical to `rabbitmq-admin-credentials`
-4. Deploy RabbitmqCluster CRD
-5. Operator creates StatefulSet, Services, ConfigMaps
-6. Create Ingress for Management UI access
-
-### Deploy Production
-
-Update ArgoCD ApplicationSet to include production cluster by editing `apps/rabbitmq/applicationset.yaml` selector.
-
-Ensure DNS records and HAProxies are configured
+3. Deploy the RabbitmqCluster CRD
+4. Operator creates StatefulSet, Services, ConfigMaps
+5. PostSync job reloads the definitions from `definitions.yaml`
 
 ## Verification
 
@@ -182,7 +155,7 @@ Open: http://localhost:15672
 
 **Get credentials:**
 
-Credentials are located in Infisical project "rabbitmq".
+Static, from `definitions.yaml`: user `guest`, password `guest`.
 
 ## Configuration
 
@@ -214,16 +187,17 @@ spec:
 
 ### Plugin Management
 
-To add/remove plugins, edit `additionalPlugins` and apply:
+To add/remove plugins, edit `additionalPlugins` in
+`templates/rabbitmq-cluster.yaml` and re-apply:
 ```bash
-kubectl apply -f charts/rabbitmq/stage/rabbitmq-cluster.yaml
+helm upgrade rabbitmq charts/rabbitmq -n rabbitmq
 ```
 
 The operator will enable/disable plugins **without restarting** pods.
 
 ### Scaling
 
-Edit `spec.replicas` in the CRD:
+Edit `spec.replicas` in `templates/rabbitmq-cluster.yaml`:
 ```yaml
 spec:
   replicas: 5  # Scale to 5 nodes
@@ -231,10 +205,14 @@ spec:
 
 Apply the change:
 ```bash
-kubectl apply -f charts/rabbitmq/production/rabbitmq-cluster.yaml
+helm upgrade rabbitmq charts/rabbitmq -n rabbitmq
 ```
 
 The operator handles rolling upgrade automatically.
+
+Scaling past 1 also requires revisiting the PodDisruptionBudget and the
+`required` pod anti-affinity rule, both in the same file — the anti-affinity
+rule leaves extra pods Pending on a single-node cluster.
 
 ## Monitoring
 
@@ -291,19 +269,19 @@ kubectl exec -n rabbitmq rabbitmq-server-0 -- rabbitmq-diagnostics ping
 kubectl exec -n rabbitmq rabbitmq-server-0 -- rabbitmq-diagnostics check_port_connectivity
 ```
 
-### Secret not syncing
+### Definitions not applied
 ```bash
-kubectl get infisicalsecret -n rabbitmq
-kubectl describe infisicalsecret -n rabbitmq rabbitmq-admin-credentials
+# The definitions ConfigMap the broker loads at startup
+kubectl get configmap -n rabbitmq rabbitmq-definitions -o yaml
 
-# Check Infisical operator logs
-kubectl logs -n infisical-operator-system -l app.kubernetes.io/name=infisical-operator
+# The PostSync job that re-applies them to a running broker
+kubectl logs -n rabbitmq job/rabbitmq-reload-definitions
 ```
 
 **Common issues:**
-- Environment name: Use `staging` not `stage` in Infisical
-- Infisical URL: Use `https://infisical.prod.saoad.dk` not `eu.infisical.com`
-- Project doesn't exist or machine identity lacks access
+- `management.load_definitions` only runs at startup; use the reload job for a
+  running broker, or restart the pod
+- Malformed `definitions.yaml` leaves the broker up but the topology missing
 
 ## Useful Commands
 

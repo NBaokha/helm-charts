@@ -1,0 +1,13 @@
+{{- /*
+Topology from definitions.yaml, converted to the JSON the management plugin
+expects. Loaded at startup via management.load_definitions; reload-config.yaml
+re-applies it to a running broker.
+*/ -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: rabbitmq-definitions
+  namespace: rabbitmq
+data:
+  definitions.json: |
+{{ .Files.Get "definitions.yaml" | fromYaml | toJson | indent 4 }}

@@ -1,3 +1,9 @@
+{{- /*
+Matomo web deployment, plus the four PVCs backing it (declared below).
+
+Note: the `-plugins-pvc` claim is created but its mount is commented out here
+and in cronjob.yaml; only security-job.yaml mounts it.
+*/}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,10 +12,6 @@ metadata:
   labels:
     app: {{ .Values.app.name }}
     environment: {{ .Values.app.environment }}
-  {{- if and .Values.infisical.enabled .Values.infisical.autoReload }}
-  annotations:
-    secrets.infisical.com/auto-reload: "true"
-  {{- end }}
 spec:
   replicas: {{ .Values.app.replicas }}
   revisionHistoryLimit: {{ .Values.app.revisionHistoryLimit | default 10 }}
@@ -39,16 +41,14 @@ spec:
         - name: ENVIRONMENT
           value: {{ .Values.app.environment }}
         {{- if .Values.mariadb.enabled }}
-        {{- if .Values.infisical.enabled }}
         - name: MATOMO_DATABASE_HOST
           value: "{{ .Values.app.name }}-mariadb"
         - name: MATOMO_DATABASE_DBNAME
-          value: "$(MARIADB_DATABASE)"
+          value: {{ .Values.mariadb.database | quote }}
         - name: MATOMO_DATABASE_USERNAME
-          value: "$(MARIADB_USER)"
+          value: {{ .Values.mariadb.user | quote }}
         - name: MATOMO_DATABASE_PASSWORD
-          value: "$(MARIADB_PASSWORD)"
-        {{- end }}
+          value: {{ .Values.mariadb.password | quote }}
         {{- end }}
         {{- if .Values.ingress.enabled }}
         {{- if .Values.ingress.path }}
@@ -59,11 +59,6 @@ spec:
         {{- range $key, $value := .Values.app.env }}
         - name: {{ $key }}
           value: {{ $value | quote }}
-        {{- end }}
-        {{- if .Values.infisical.enabled }}
-        envFrom:
-        - secretRef:
-            name: {{ .Values.app.name }}
         {{- end }}
         resources:
           limits:
@@ -109,6 +104,7 @@ spec:
         persistentVolumeClaim:
           claimName: {{ .Values.app.name }}-tmp-pvc
 ---
+{{- /* Persistent storage for the Matomo files that change at runtime. */}}
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

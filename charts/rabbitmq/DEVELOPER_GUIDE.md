@@ -17,7 +17,8 @@ Port: 5672 (AMQP)
 **Credentials:**
 - **VIGTIGT:** Brug IKKE admin credentials i applikationer
 - Opret en dedikeret bruger per service/application i RabbitMQ Management UI
-- Username og password gemmes i Infisical under jeres service's projekt
+- Klyngens egne brugere er statiske og defineret i `definitions.yaml`
+  (`guest`/`guest`) — kun beregnet til lokale og test-clustre
 
 ### Opret Application User
 
@@ -58,16 +59,15 @@ Read regexp: ^my-service\..*$  (kun consume fra my-service.* queues)
 **Best practice:**
 - En bruger per service/application
 - Minimal permissions (kun hvad servicen behøver)
-- Gem credentials i Infisical under service's eget projekt
+- Gem service-credentials i en Kubernetes Secret, ikke i kode
 - ALDRIG hardcode credentials i kode
 
 **Credentials:**
-- Hent fra Infisical for din specifikke service
-- Admin credentials er kun til platform team og infrastructure management
+- Klyngens `guest`-bruger er statisk og kun til lokal brug
+- Opret din egen bruger til din service (se ovenfor)
 
 **Management UI:**
-- Stage: https://rabbitmq.stage.saoad.dk
-- Production: https://rabbitmq.prod.saoad.dk
+- Port-forward til 15672 — der udrulles ingen Ingress af dette chart
 
 ## Spring Boot Integration
 
@@ -118,7 +118,7 @@ spring:
 
 ### 3. Kubernetes Deployment
 
-**Environment variabler fra Infisical:**
+**Environment variabler fra en Kubernetes Secret:**
 
 ```yaml
 apiVersion: apps/v1
@@ -437,16 +437,12 @@ public void processTask(Task task) {
 }
 ```
 
-## Environments
+## Environment
 
-### Stage
-- URL: `rabbitmq.rabbitmq.svc.cluster.local:5672`
-- Management: https://rabbitmq.stage.saoad.dk
-- Resources: 1 replica, 512Mi-1Gi RAM
+A single stage cluster is deployed:
 
-### Production
 - URL: `rabbitmq.rabbitmq.svc.cluster.local:5672`
-- Management: https://rabbitmq.prod.saoad.dk
-- Resources: 3 replicas (HA), 2-4Gi RAM per node
+- Management: port-forward to 15672 (no Ingress is rendered by the chart)
+- Resources: 1 replica, 2-4Gi RAM
 
 

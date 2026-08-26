@@ -1,0 +1,93 @@
+# Overrides for the upstream grafana chart pinned in Chart.yaml. Only values
+# that differ from upstream defaults belong here; targets the stage cluster.
+#   helm show values grafana-community/grafana --version 9.4.5
+grafana:
+
+  # Pinned: chart 9.4.5 defaults the tag to its own appVersion (12.1.1), which
+  # would silently downgrade us from the 12.4.0 this repo has been running.
+  image:
+    tag: "12.4.0"
+
+  ingress:
+    enabled: true
+    hosts:
+      - grafana.stage.saoad.dk
+    tls:
+      - secretName: grafana-stage-tls
+        hosts:
+          - grafana.stage.saoad.dk
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt
+      # TLS terminates at the ingress; Grafana speaks plain HTTP.
+      nginx.ingress.kubernetes.io/backend-protocol: HTTP
+      nginx.ingress.kubernetes.io/ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+      nginx.ingress.kubernetes.io/use-forwarded-headers: "true"
+      nginx.ingress.kubernetes.io/proxy-set-headers: "true"
+      nginx.ingress.kubernetes.io/secure-backends: "true"
+      nginx.ingress.kubernetes.io/enable-cors: "true"
+      # Keycloak OAuth tokens overflow the default header buffer.
+      nginx.ingress.kubernetes.io/proxy-buffer-size: 128k
+      nginx.ingress.kubernetes.io/proxy-buffers-number: "4"
+      nginx.ingress.kubernetes.io/proxy-body-size: 10m
+      nginx.ingress.kubernetes.io/affinity: cookie
+      nginx.ingress.kubernetes.io/session-cookie-name: GRAFANA_SESSION
+      nginx.ingress.kubernetes.io/session-cookie-path: /
+
+  persistence:
+    enabled: true
+
+  # Stage volumes already come owned by the grafana UID.
+  initChownData:
+    enabled: false
+
+  # Placeholders, not secrets — override with --set for anything real.
+  adminUser: admin
+  adminPassword: strongpassword
+
+  # Rendered into the `<release>-env` Secret and injected via envFrom; this is
+  # what resolves ${GRAFANA_CLIENT_SECRET} below.
+  envRenderSecret:
+    GRAFANA_CLIENT_SECRET: myclientsecret
+
+  plugins:
+    - yesoreyeram-infinity-datasource
+    - alexanderzobnin-zabbix-app
+    - grafana-github-datasource
+
+  sidecar:
+    plugins:
+      enabled: true
+
+  # ${VAR} references below are expanded by Grafana from the pod environment,
+  # not by Helm.
+  grafana.ini:
+    log:
+      level: info
+
+    server:
+      root_url: https://grafana.stage.saoad.dk
+      serve_from_sub_path: true
+
+    auth.generic_oauth:
+      enabled: true
+      name: Keycloak-OAuth
+      allow_sign_up: true
+      client_id: grafana
+      client_secret: ${GRAFANA_CLIENT_SECRET}
+      scopes: openid email profile offline_access grafana_roles
+      email_attribute_path: email
+      login_attribute_path: username
+      name_attribute_path: full_name
+      auth_url: https://keycloak.stage.saoad.dk/realms/master/protocol/openid-connect/auth
+      token_url: https://keycloak.stage.saoad.dk/realms/master/protocol/openid-connect/token
+      api_url: https://keycloak.stage.saoad.dk/realms/master/protocol/openid-connect/userinfo
+      # Users matching no role are denied.
+      role_attribute_path: (contains(roles[*], 'admin')) && 'Admin' || (contains(roles[*], 'editor')) && 'Editor' || (contains(roles[*], 'viewer')) && 'Viewer'
+      role_attribute_strict: true
+
+    # Git Sync: Grafana reads dashboard JSON from ./dashboards in this repo
+    # directly, so `dashboards: {}` is correct — Helm must not render them.
+    feature_toggles:
+      provisioning: true
+      kubernetesDashboards: true

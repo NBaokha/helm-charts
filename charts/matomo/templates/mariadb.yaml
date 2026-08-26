@@ -1,3 +1,9 @@
+{{- /*
+In-cluster MariaDB: Deployment, Service and PVC.
+
+Single-replica by design — the data directory is ReadWriteOnce, so scaling past
+1 would corrupt the database.
+*/}}
 {{- if .Values.mariadb.enabled }}
 apiVersion: apps/v1
 kind: Deployment
@@ -5,7 +11,7 @@ metadata:
   name: {{ .Values.app.name }}-mariadb
   namespace: {{ .Values.app.namespace }}
 spec:
-  replicas: 1 
+  replicas: 1
   selector:
     matchLabels:
       app: {{ .Values.app.name }}-mariadb
@@ -18,7 +24,7 @@ spec:
       - name: mariadb
         image: mariadb:11.8
         ports:
-        - containerPort: 3306  
+        - containerPort: 3306
         env:
         - name: MARIADB_ROOT_PASSWORD
           value: "{{ .Values.mariadb.rootPassword }}"
@@ -31,10 +37,11 @@ spec:
         - name: MARIADB_AUTO_UPGRADE
           value: "1"
         - name: MARIADB_ADMIN_USER
-          value: "nba_admin"
+          value: "{{ .Values.mariadb.adminUser }}"
         - name: MARIADB_ADMIN_PASSWORD
-          value: "admin_password"
+          value: "{{ .Values.mariadb.adminPassword }}"
         args:
+        # Matomo's archiving queries can exceed the 16M default.
         - --max-allowed-packet=64M
         volumeMounts:
         - name: mariadb-data
@@ -83,5 +90,5 @@ spec:
   resources:
     requests:
       storage: {{ .Values.mariadb.storageSize }}
-  storageClassName: local-path
+  storageClassName: {{ .Values.mariadb.storageClassName | default "local-path" }}
 {{- end }}

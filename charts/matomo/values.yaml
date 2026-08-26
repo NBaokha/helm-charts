@@ -1,7 +1,10 @@
+# Values for the matomo chart, targeting the stage cluster. No per-environment
+# files; deploy elsewhere by passing an extra -f overlay.
+
 app:
   name: matomo
   namespace: matomo
-  environment: dev
+  environment: stage
   replicas: 1
   image: matomo
   tag: "5.7.1-apache"
@@ -15,8 +18,11 @@ app:
       cpu: 250m
       memory: 512Mi
   healthcheck:
+    # The tracker endpoint responds before the web UI is provisioned, making it
+    # a better signal than /.
     path: /matomo.php
     liveness:
+      # First boot runs database migrations; too short a delay loops restarts.
       initialDelaySeconds: 120
       periodSeconds: 60
     readiness:
@@ -25,11 +31,19 @@ app:
   env:
     MATOMO_DATABASE_ADAPTER: "mysql"
     MATOMO_DATABASE_TABLES_PREFIX: "matomo_"
-    PHP_MEMORY_LIMIT: "1G"
+    PHP_MEMORY_LIMIT: "512M"
+    # Errors to the container log rather than into rendered pages.
+    PHP_LOG_ERRORS: "On"
+    PHP_ERROR_LOG: "/dev/stderr"
+    PHP_DISPLAY_ERRORS: "On"
+    PHP_ERROR_REPORTING: "E_ALL"
 
 service:
-  type: ClusterIP
+  type: NodePort
   port: 80
+  # NOTE: ignored — templates/service.yaml never renders it, so the port is
+  # assigned at random.
+  nodePort: 30080
 
 ingress:
   enabled: false
@@ -39,6 +53,7 @@ ingress:
   pathType: Prefix
   annotations: {}
 
+# Each entry becomes its own PVC, declared in templates/deployment.yaml.
 storage:
   storageClassName: local-path
   config:
@@ -50,18 +65,27 @@ storage:
   tmp:
     size: 2Gi
 
+# In-cluster database for local and stage use; point at a managed one for real.
+# These credentials are static throwaway values passed straight into the
+# container environment — not secrets.
 mariadb:
   enabled: true
-  storageSize: 5Gi
+  storageSize: 10Gi
+  storageClassName: local-path
   rootPassword: "root"
   database: "matomo"
   user: "matomo"
   password: "matomo"
+  adminUser: "nba_admin"
+  adminPassword: "admin_password"
 
+# Matomo builds report aggregates on a schedule, not on request. Without this,
+# reports stay empty.
 archiving:
   enabled: true
   schedule: "5 * * * *"
-  url: ""
+  # In-cluster service name, so archiving does not depend on DNS or the ingress.
+  url: "http://matomo:80"
   concurrent: 4
   concurrentArchivers: 2
   successfulJobsHistoryLimit: 3
