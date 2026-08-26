@@ -1,6 +1,4 @@
-# Overrides for the upstream prometheus chart pinned in Chart.yaml. Only values
-# that differ from upstream defaults belong here.
-#   helm show values prometheus-community/prometheus --version 28.9.0
+# Overrides for the upstream chart in Chart.yaml.
 prometheus:
 
   # Host-level metrics are not meaningful on single-node Docker Desktop / WSL2.

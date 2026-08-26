@@ -1,8 +1,4 @@
-{{- /*
-management.load_definitions only applies at startup, so an edit to
-definitions.yaml would not reach a running cluster. This PostSync hook polls the
-management API until the broker is up, then re-applies them.
-*/}}
+{{- /* management.load_definitions only applies at startup, so an edit to definitions.yaml would not reach a running cluster. */}}
 ---
 apiVersion: batch/v1
 kind: Job

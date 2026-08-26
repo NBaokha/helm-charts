@@ -1,9 +1,4 @@
-{{- /*
-Scheduled report archiving; without it, reports render empty.
-
-The image ships its source in /usr/src/matomo while the PVCs mount at
-/var/www/html — hence the symlinks before invoking the console.
-*/}}
+{{- /* Scheduled report archiving; without it, reports render empty. */}}
 {{- if .Values.archiving.enabled }}
 apiVersion: batch/v1
 kind: CronJob

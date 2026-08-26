@@ -1,0 +1,24 @@
+# App-of-apps. Bootstrap once: kubectl apply -f apps/root.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: root
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/NBaokha/helm-charts/
+    targetRevision: HEAD
+    path: apps
+    directory:
+      recurse: false
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      # Pruning would delete Applications and cascade to their workloads.
+      prune: false
+      selfHeal: true

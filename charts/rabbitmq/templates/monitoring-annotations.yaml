@@ -1,7 +1,4 @@
-{{- /*
-Scrape annotations rather than a ServiceMonitor, so this works with
-charts/prometheus, which has no Prometheus Operator CRDs.
-*/}}
+{{- /* Scrape annotations rather than a ServiceMonitor, so this works with charts/prometheus, which has no Prometheus Operator CRDs. */}}
 ---
 apiVersion: v1
 kind: Service

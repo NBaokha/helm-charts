@@ -1,5 +1,4 @@
-# Values for the matomo chart, targeting the stage cluster. No per-environment
-# files; deploy elsewhere by passing an extra -f overlay.
+# Values for the matomo chart. Pass an extra -f overlay for other environments.
 
 app:
   name: matomo
@@ -18,8 +17,7 @@ app:
       cpu: 250m
       memory: 512Mi
   healthcheck:
-    # The tracker endpoint responds before the web UI is provisioned, making it
-    # a better signal than /.
+    # Responds before the web UI is provisioned, unlike /.
     path: /matomo.php
     liveness:
       # First boot runs database migrations; too short a delay loops restarts.
@@ -41,8 +39,7 @@ app:
 service:
   type: NodePort
   port: 80
-  # NOTE: ignored — templates/service.yaml never renders it, so the port is
-  # assigned at random.
+  # NOTE: ignored — service.yaml never renders it, so the port is random.
   nodePort: 30080
 
 ingress:
@@ -65,9 +62,7 @@ storage:
   tmp:
     size: 2Gi
 
-# In-cluster database for local and stage use; point at a managed one for real.
-# These credentials are static throwaway values passed straight into the
-# container environment — not secrets.
+# Local-only database. Credentials are static throwaway values, not secrets.
 mariadb:
   enabled: true
   storageSize: 10Gi
@@ -79,8 +74,7 @@ mariadb:
   adminUser: "nba_admin"
   adminPassword: "admin_password"
 
-# Matomo builds report aggregates on a schedule, not on request. Without this,
-# reports stay empty.
+# Report aggregates are built on a schedule; without this, reports stay empty.
 archiving:
   enabled: true
   schedule: "5 * * * *"

@@ -7,8 +7,7 @@ type: application
 version: 1.0.0
 appVersion: v3.9.1
 
-# Upstream is used as-is; all customisation lives in values.yaml under
-# the `prometheus:` key. See the repo README to upgrade.
+# Upstream as-is; customisation lives in values.yaml under `prometheus:`.
 dependencies:
   - name: prometheus
     version: 28.9.0

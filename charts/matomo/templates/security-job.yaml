@@ -1,10 +1,4 @@
-{{- /*
-Writes Matomo's .htaccess deny rules onto the shared volumes after each deploy.
-
-A PostSync hook because it must run once the PVCs exist and are populated. The
-console binary moves between image layouts, so its location is probed rather
-than assumed. Mounts `-plugins-pvc`, which the other workloads do not.
-*/}}
+{{- /* Writes Matomo's .htaccess deny rules onto the shared volumes after each deploy. */}}
 apiVersion: batch/v1
 kind: Job
 metadata:

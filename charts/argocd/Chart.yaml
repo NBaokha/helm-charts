@@ -7,12 +7,7 @@ type: application
 version: 1.0.0
 appVersion: v3.5.1
 
-# Upstream is used as-is; all customisation lives in values.yaml under
-# the `argo-cd:` key. See README.md to install and upgrade.
-#
-# Do not point an Argo CD Application at this chart on a fresh cluster — it
-# cannot sync itself into existence, and a bad sync takes out the controller
-# that would fix it.
+# Argo CD cannot bootstrap itself; install with helm first. See README.md.
 dependencies:
   - name: argo-cd
     version: 10.4.0

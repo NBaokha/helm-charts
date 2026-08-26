@@ -1,19 +1,12 @@
-# Overrides for the upstream argo-cd chart pinned in Chart.yaml. Only values
-# that differ from upstream defaults belong here.
-#   helm show values argo/argo-cd --version 10.4.0
-#
-# Tuned for a single-node local cluster: no SSO, no notifications, no ingress.
+# Overrides for the upstream chart in Chart.yaml. Local cluster: no SSO, no ingress.
 argo-cd:
 
   configs:
     cm:
-      # Must match how you actually reach the UI, or post-login redirects and
-      # generated links point at the chart's argocd.example.com default.
+      # Must match how you reach the UI, or post-login redirects break.
       url: https://localhost:8080
     params:
-      # Left at the upstream default (TLS on). Setting this to `true` serves
-      # plain HTTP on 8080, which means an https:// request is reset rather
-      # than redirected — a TLS handshake cannot be answered with a redirect.
+      # TLS on. Setting true serves plain HTTP, so https:// is reset, not redirected.
       server.insecure: false
 
   # Metrics Services are off by default; the annotation lets prometheus find them.
@@ -43,7 +36,6 @@ argo-cd:
   notifications:
     enabled: false
 
-  # Usual way to register the other charts here. Disable if the node is tight.
   applicationSet:
     enabled: true
     metrics:

@@ -3,17 +3,11 @@ name: grafana
 description: Grafana, wrapping the upstream grafana-community chart.
 type: application
 
-# Version of this wrapper. appVersion is the Grafana we actually run, pinned via
-# image.tag in values.yaml — chart 9.4.5 would otherwise default it to 12.1.1.
+# Version of this wrapper. appVersion is the Grafana we run, pinned via image.tag.
 version: 1.0.0
 appVersion: 12.4.0
 
-# Upstream is used as-is; all customisation lives in values.yaml under
-# the `grafana:` key. See the repo README to upgrade.
-#
-# Pinned to 9.4.5 because that is what this repo was really running: the old
-# Chart.yaml claimed 12.4.0 while the vendored templates were 9.4.5. Moving to
-# 10.x drops PodSecurityPolicy and restructures `image.*` — read the changelog.
+# Pinned to 9.4.5: the old Chart.yaml claimed 12.4.0 but the templates were 9.4.5.
 dependencies:
   - name: grafana
     version: 9.4.5

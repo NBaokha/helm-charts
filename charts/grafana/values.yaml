@@ -1,32 +1,22 @@
-# Overrides for the upstream grafana chart pinned in Chart.yaml. Only values
-# that differ from upstream defaults belong here.
-#   helm show values grafana-community/grafana --version 9.4.5
-#
-# Targets a local cluster: no ingress, no SSO, reached via
-#   kubectl -n <ns> port-forward svc/grafana 3000:80
-# The previous stage config (ingress, Keycloak OAuth, saoad.dk hosts) is in git
-# history if it is ever needed again.
+# Overrides for the upstream chart in Chart.yaml. Local cluster: no ingress, no SSO.
 grafana:
 
-  # Pinned: chart 9.4.5 defaults the tag to its own appVersion (12.1.1), which
-  # would silently downgrade us from the 12.4.0 this repo has been running.
+  # Chart 9.4.5 would otherwise default the tag to 12.1.1 and downgrade us.
   image:
     tag: "12.4.0"
 
   persistence:
     enabled: true
 
-  # The init container runs `chown -R 472:472` on the data volume, which fails
-  # on Docker Desktop / WSL2 hostpath volumes and crashloops the pod. The
-  # provisioner already grants the container write access.
+  # chown -R fails on Docker Desktop / WSL2 hostpath volumes and crashloops the pod.
   initChownData:
     enabled: false
 
-  # Renders a grafana-test Pod and ConfigMap we never run.
+  # Renders a grafana-test Pod we never run.
   testFramework:
     enabled: false
 
-  # Placeholders, not secrets — override with --set for anything real.
+  # Placeholders, not secrets.
   adminUser: admin
   adminPassword: strongpassword
 
@@ -44,12 +34,10 @@ grafana:
       level: info
 
     server:
-      # Must match how the UI is actually reached, or redirects and asset URLs
-      # break. Change this if you port-forward to a different local port.
+      # Must match the port you forward, or redirects and asset URLs break.
       root_url: http://localhost:3000
 
-    # Git Sync: Grafana reads dashboard JSON from ./dashboards in this repo
-    # directly, so `dashboards: {}` is correct — Helm must not render them.
+    # Git Sync reads ./dashboards from this repo directly; Helm must not render them.
     feature_toggles:
       provisioning: true
       kubernetesDashboards: true

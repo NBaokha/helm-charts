@@ -1,9 +1,4 @@
-{{- /*
-In-cluster MariaDB: Deployment, Service and PVC.
-
-Single-replica by design — the data directory is ReadWriteOnce, so scaling past
-1 would corrupt the database.
-*/}}
+{{- /* In-cluster MariaDB: Deployment, Service and PVC. */}}
 {{- if .Values.mariadb.enabled }}
 apiVersion: apps/v1
 kind: Deployment

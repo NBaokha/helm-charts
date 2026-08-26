@@ -1,9 +1,4 @@
-{{- /*
-Matomo web deployment, plus the four PVCs backing it (declared below).
-
-Note: the `-plugins-pvc` claim is created but its mount is commented out here
-and in cronjob.yaml; only security-job.yaml mounts it.
-*/}}
+{{- /* Matomo web deployment, plus the four PVCs backing it (declared below). */}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
