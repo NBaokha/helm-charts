@@ -7,7 +7,7 @@ type: application
 version: 1.0.0
 appVersion: 12.4.0
 
-# Pinned to 9.4.5: the old Chart.yaml claimed 12.4.0 but the templates were 9.4.5.
+# Pinned to 9.4.5: the old Chart.yaml
 dependencies:
   - name: grafana
     version: 9.4.5
